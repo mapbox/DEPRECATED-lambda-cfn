@@ -14,9 +14,9 @@ tape('Compile unit tests', function(t) {
     name: 'simple',
     sourcePath: 'rules/myRule.js'
   })], {});
-  var simpleFixture = fs.readFileSync(path.join(__dirname, './fixtures/simple.template'), "utf8");
+  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template'), "utf8"));
 
-  t.equal(simpleBuilt, simpleFixture, 'simple build is equal to fixture');
+  t.deepEqual(simpleBuilt, simpleFixture, 'simple build is equal to fixture');
 
   var fullConfig = {
     name: 'full',
@@ -43,9 +43,9 @@ tape('Compile unit tests', function(t) {
   };
 
   var fullBuilt = lambdaCfn.compile([lambdaCfn.build(fullConfig)], {});
-  var fullFixture = fs.readFileSync(path.join(__dirname, './fixtures/full.template'), "utf8");
+  var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template'), "utf8"));
 
-  t.equal(fullBuilt, fullFixture, 'full build is equal to fixture');
+  t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
 
   t.end();
 

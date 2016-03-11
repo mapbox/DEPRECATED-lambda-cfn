@@ -7,6 +7,7 @@ var lambdaPermission = lambdaCfn.lambdaPermission;
 var policy = lambdaCfn.policy;
 var streambotEnv = lambdaCfn.streambotEnv;
 var cloudwatch = lambdaCfn.cloudwatch;
+var splitOnComma = lambdaCfn.splitOnComma;
 
 tape('parameter unit tests', function(t) {
   t.throws(
@@ -208,8 +209,8 @@ tape('streambotEnv unit tests', function(t) {
         "FunctionName": {
           "Ref": "myFunction"
         },
-        "CrowsnestAlarmSNSTopic": {
-          "Ref": "CrowsnestAlarmSNSTopic"
+        "LambdaCfnAlarmSNSTopic": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
         }
       }
     }, 'Only global streambotEnv if no parameters');
@@ -243,8 +244,8 @@ tape('streambotEnv unit tests', function(t) {
         "param2": {
           "Ref": "param2"
         },
-        "CrowsnestAlarmSNSTopic": {
-          "Ref": "CrowsnestAlarmSNSTopic"
+        "LambdaCfnAlarmSNSTopic": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
         }
       }
     }
@@ -278,4 +279,27 @@ tape('cloudwatch unit tests', function(t) {
 
   t.end();
 
+});
+
+tape('splitOnComma unit tests', function(t) {
+
+  t.deepEqual(
+    splitOnComma('foo, bar'),
+    ['foo', 'bar'],
+    'split string with comma'
+  );
+
+  t.deepEqual(
+    splitOnComma('foo'),
+    ['foo'],
+    'split string with no comma'
+  );
+
+  t.deepEqual(
+    splitOnComma('foo,bar'),
+    ['foo', 'bar'],
+    'split string with comma and no space'
+  );
+
+  t.end();
 });

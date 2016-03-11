@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Crowsnest",
+  "Description": "LambdaCfn",
   "Parameters": {
     "CodeS3Bucket": {
       "Type": "String",
@@ -48,7 +48,7 @@
         },
         "Role": {
           "Fn::GetAtt": [
-            "CrowsnestRole",
+            "LambdaCfnRole",
             "Arn"
           ]
         },
@@ -58,10 +58,10 @@
         "Handler": "index.simple",
         "MemorySize": 128,
         "Runtime": "nodejs",
-        "Timeout": 60,
-        "Metadata": {
-          "sourcePath": "rules/myRule.js"
-        }
+        "Timeout": 60
+      },
+      "Metadata": {
+        "sourcePath": "rules/myRule.js"
       }
     },
     "simplePermission": {
@@ -106,8 +106,8 @@
         "FunctionName": {
           "Ref": "simple"
         },
-        "CrowsnestAlarmSNSTopic": {
-          "Ref": "CrowsnestAlarmSNSTopic"
+        "LambdaCfnAlarmSNSTopic": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
         }
       }
     },
@@ -117,11 +117,11 @@
         "EvaluationPeriods": "5",
         "Statistic": "Sum",
         "Threshold": "0",
-        "AlarmDescription": "https://github.com/mapbox/crowsnest-public/blob/master/alarms.md#Errors",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
         "Period": "60",
         "AlarmActions": [
           {
-            "Ref": "CrowsnestAlarmSNSTopic"
+            "Ref": "LambdaCfnAlarmSNSTopic"
           }
         ],
         "Namespace": "AWS/Lambda",
@@ -143,11 +143,11 @@
         "EvaluationPeriods": "5",
         "Statistic": "Sum",
         "Threshold": "0",
-        "AlarmDescription": "https://github.com/mapbox/crowsnest-public/blob/master/alarms.md#NoInvocations",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
         "Period": "60",
         "AlarmActions": [
           {
-            "Ref": "CrowsnestAlarmSNSTopic"
+            "Ref": "LambdaCfnAlarmSNSTopic"
           }
         ],
         "Namespace": "AWS/Lambda",
@@ -163,7 +163,7 @@
         "MetricName": "Invocations"
       }
     },
-    "CrowsnestRole": {
+    "LambdaCfnRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -223,7 +223,7 @@
                     "sns:Publish"
                   ],
                   "Resource": {
-                    "Ref": "CrowsnestAlarmSNSTopic"
+                    "Ref": "LambdaCfnAlarmSNSTopic"
                   }
                 },
                 {
@@ -239,7 +239,7 @@
         ]
       }
     },
-    "CrowsnestAlarmSNSTopic": {
+    "LambdaCfnAlarmSNSTopic": {
       "Type": "AWS::SNS::Topic",
       "Properties": {
         "TopicName": {

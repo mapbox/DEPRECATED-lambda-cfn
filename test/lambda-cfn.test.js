@@ -208,8 +208,8 @@ tape('streambotEnv unit tests', function(t) {
         "FunctionName": {
           "Ref": "myFunction"
         },
-        "CrowsnestAlarmSNSTopic": {
-          "Ref": "CrowsnestAlarmSNSTopic"
+        "LambdaCfnAlarmSNSTopic": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
         }
       }
     }, 'Only global streambotEnv if no parameters');
@@ -243,8 +243,8 @@ tape('streambotEnv unit tests', function(t) {
         "param2": {
           "Ref": "param2"
         },
-        "CrowsnestAlarmSNSTopic": {
-          "Ref": "CrowsnestAlarmSNSTopic"
+        "LambdaCfnAlarmSNSTopic": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
         }
       }
     }

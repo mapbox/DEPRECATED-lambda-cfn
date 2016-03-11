@@ -1,0 +1,48 @@
+{
+  "name": "lambda-cfn",
+  "version": "0.0.0",
+  "description": "CloudFormation boiler plate for lambda functions",
+  "main": "lib/lambda-cfn.js",
+  "engines": {
+    "node": "0.10.38"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mapbox/lambda-cfn.git"
+  },
+  "scripts": {
+    "test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
+  },
+  "bin": {
+    "lambda-cfn-build": "./bin/lambda-cfn-build.js",
+    "lambda-cfn-rules": "./bin/lambda-cfn-rules.js"
+  },
+  "dependencies": {
+    "streambot": "3.4.0",
+    "queue-async": "1.0.7",
+    "app-root-path": "1.2.0"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.2.35",
+    "jscs": "^1.11.3",
+    "jshint": "^2.6.3",
+    "tape": "^3.5.0"
+  },
+  "jscsConfig": {
+    "preset": "airbnb",
+    "requireCamelCaseOrUpperCaseIdentifiers": null
+  },
+  "jshintConfig": {
+    "node": true,
+    "globalstrict": false,
+    "undef": true,
+    "unused": true,
+    "noarg": true
+  },
+  "author": "Mapbox, Inc.",
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/mapbox/lambda-cfn/issues"
+  },
+  "homepage": "https://github.com/mapbox/lambda-cfn"
+}

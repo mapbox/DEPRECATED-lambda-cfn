@@ -7,6 +7,7 @@ var lambdaPermission = lambdaCfn.lambdaPermission;
 var policy = lambdaCfn.policy;
 var streambotEnv = lambdaCfn.streambotEnv;
 var cloudwatch = lambdaCfn.cloudwatch;
+var splitOnComma = lambdaCfn.splitOnComma;
 
 tape('parameter unit tests', function(t) {
   t.throws(
@@ -278,4 +279,27 @@ tape('cloudwatch unit tests', function(t) {
 
   t.end();
 
+});
+
+tape('splitOnComma unit tests', function(t) {
+
+  t.deepEqual(
+    splitOnComma('foo, bar'),
+    ['foo', 'bar'],
+    'split string with comma'
+  );
+
+  t.deepEqual(
+    splitOnComma('foo'),
+    ['foo'],
+    'split string with no comma'
+  );
+
+  t.deepEqual(
+    splitOnComma('foo,bar'),
+    ['foo', 'bar'],
+    'split string with comma and no space'
+  );
+
+  t.end();
 });

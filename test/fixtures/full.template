@@ -66,10 +66,10 @@
         "Handler": "index.full",
         "MemorySize": 128,
         "Runtime": "nodejs",
-        "Timeout": 60,
-        "Metadata": {
-          "sourcePath": "rules/myRule.js"
-        }
+        "Timeout": 60
+      },
+      "Metadata": {
+        "sourcePath": "rules/myRule.js"
       }
     },
     "fullPermission": {

@@ -44,9 +44,19 @@ tape('lambda unit tests', function(t) {
     }, /name property required/, 'Fail when no name property'
 
   );
-
   var def = lambda({name: 'myHandler'});
   t.equal(def.Properties.Handler, 'index.myHandler', 'Lambda handler correctly named');
+  t.equal(def.Properties.MemorySize, 128, 'Lambda memory size default correct');
+  t.equal(def.Properties.Timeout, 60, 'Lambda timeout default correct');
+  def = lambda({name: 'myHandler', memorySize: 512, timeout: 300});
+  t.equal(def.Properties.MemorySize, 512, 'Lambda memory size updated');
+  t.equal(def.Properties.Timeout, 300, 'Lambda timeout updated');
+  def = lambda({name: 'myHandler', memorySize: 4096, timeout: 600});
+  t.equal(def.Properties.MemorySize, 128, 'Lambda memory size > 1536 safe default');
+  t.equal(def.Properties.Timeout, 60, 'Lambda timeout safe default');
+  def = lambda({name: 'myHandler', memorySize: 1111, timeout: 600});
+  t.equal(def.Properties.MemorySize, 128, 'Lambda memory size mod 64 safe default');
+
   t.end();
 
 });

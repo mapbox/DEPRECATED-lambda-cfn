@@ -14,7 +14,6 @@
     "test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
   },
   "bin": {
-    "lambda-cfn-build": "./bin/lambda-cfn-build.js",
     "lambda-cfn-rules": "./bin/lambda-cfn-rules.js"
   },
   "dependencies": {

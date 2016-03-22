@@ -8,6 +8,10 @@ var policy = lambdaCfn.policy;
 var streambotEnv = lambdaCfn.streambotEnv;
 var cloudwatch = lambdaCfn.cloudwatch;
 var splitOnComma = lambdaCfn.splitOnComma;
+var lambdaSnsTopic = lambdaCfn.lambdaSnsTopic;
+var lambdaSnsUser = lambdaCfn.lambdaSnsUser;
+var lambdaSnsUserAccessKey = lambdaCfn.lambdaSnsUserAccessKey;
+var outputs = lambdaCfn.outputs;
 
 tape('parameter unit tests', function(t) {
   t.throws(
@@ -56,7 +60,7 @@ tape('lambda permission unit tests', function(t) {
 
   );
 
-  var def = lambdaPermission({name: 'myHandler'});
+  var def = lambdaPermission({name: 'myHandler', eventRule: {}});
   t.equal(def.Properties.FunctionName["Fn::GetAtt"][0], 'myHandler', 'Lambda handler correctly named');
   t.end();
 
@@ -301,5 +305,81 @@ tape('splitOnComma unit tests', function(t) {
     'split string with comma and no space'
   );
 
+  t.end();
+});
+
+tape('lambdaSnsTopic unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = lambdaSnsTopic({name: 'myHandler'});
+  t.equal(def.Type, 'AWS::SNS::Topic', 'Lambda SNS topic type correct');
+  t.ok(def.Properties.TopicName,'TopicName present');
+  t.equal(def.Properties.DisplayName["Fn::Join"][1][1],'myHandler','DisplayName set correctly');
+  t.equal(def.Properties.TopicName["Fn::Join"][1][1],'myHandler','TopicName set correctly');
+  t.equal(def.Properties.Subscription[0].Protocol,'lambda','Subcription protocol set correctly');
+  t.equal(def.Properties.Subscription[0].Endpoint["Fn::GetAtt"][0],'myHandler','Subcription endpoint set correctly');
+  t.end();
+});
+
+tape('lambdaSnsUser unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = lambdaSnsUser({name: 'myHandler'});
+  t.equal(def.Type,'AWS::IAM::User','Lambda SNS user type correct');
+  t.equal(def.Properties.Policies[0].PolicyName,'myHandlerSNSTopicPolicy','PolicyName set correctly');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Resource[0].Ref,'myHandlerSNSTopic','Policy resource name set correctly');
+  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[0].Action,
+              ['sns:ListTopics','sns:Publish'],
+              'Policy actions set correctly');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Effect,'Allow','Policy Effect set');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Resource[0]["Fn::Join"][1][4],':*','List Account Topics policy set');
+  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[1].Action,
+              ['sns:ListTopics'],
+              'List Account Topics action set');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Effect,'Allow','List Account Topics effect set');
+  t.end();
+});
+
+tape('lambdaSnsUserAccessKey unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = lambdaSnsUserAccessKey({name: 'myHandler'});
+  t.equal(def.Type,'AWS::IAM::AccessKey','Key type set');
+  t.equal(def.Properties.UserName.Ref,'myHandlerSNSUser','Key name set');
+  t.end();
+});
+
+tape('template outputs unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = outputs({name: 'myHandler'});
+  t.equal(def,undefined,'non-snsRules have no outputs');
+  def = outputs({name: 'myHandler',snsRule:{}});
+  t.equal(def.myHandlerSNSUserAccessKey.Value.Ref,'myHandlerSNSUserAccessKey','User access key output is set');
+  t.equal(def.myHandlerSNSUserSecretAccessKey.Value["Fn::GetAtt"][0],'myHandlerSNSUserAccessKey','User secret access key output is set');
   t.end();
 });

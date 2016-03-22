@@ -47,34 +47,61 @@ q.awaitAll(function(err) {
 function createEventRules(callback) {
   var q = queue();
   rules.forEach(function(rule) {
+    var name = stackName + '-' + rule.config.name;
     if (rule.config.eventRule) {
-      var name = stackName + '-' + rule.config.name;
-      var ruleParams = {
-        Name: name,
-        EventPattern: JSON.stringify(rule.config.eventRule.eventPattern),
-        RoleArn: rule.roleArn
+      var eName = name + '-event';
+      var eRuleParams = {
+        Name: eName,
+        RoleArn: rule.roleArn,
+        EventPattern: JSON.stringify(rule.config.eventRule.eventPattern)
       };
-      var targetParams = {
-        Rule: name,
+      var eTargetParams = {
+        Rule: eName,
         Targets: [
           {
             Arn: rule.arn,
-            Id: name,
+            Id: eName
           }
         ]
       };
       q.defer(function(next) {
-        cwe.putRule(ruleParams, function(err, res) {
+        cwe.putRule(eRuleParams, function(err, res) {
           if (err) return next(err);
-          cwe.putTargets(targetParams, function(err, res) {
+          cwe.putTargets(eTargetParams, function(err, res) {
+            next(err);
+          });
+        });
+      });
+    }
+    if (rule.config.scheduledRule) {
+      var sName = name + '-scheduled';
+      var sRuleParams = {
+        Name: sName,
+        RoleArn: rule.roleArn,
+        ScheduleExpression: rule.config.scheduledRule
+      };
+      var sTargetParams = {
+        Rule: sName,
+        Targets: [
+          {
+            Arn: rule.arn,
+            Id: sName
+          }
+        ]
+      };
+      q.defer(function(next) {
+        cwe.putRule(sRuleParams, function(err, res) {
+          if (err) return next(err);
+          cwe.putTargets(sTargetParams, function(err, res) {
             next(err);
           });
         });
       });
     }
   });
+
   q.awaitAll(function(err) {
-    callback(err);
+  callback(err);
   });
 }
 
@@ -85,7 +112,7 @@ function getStackResources(callback) {
     if (err) throw err;
       // Decorate rules with info needed to create Event Rules
       rules.forEach(function(rule, i) {
-        if (rule.config && rule.config.eventRule) {
+        if (rule.config && (rule.config.eventRule || rule.config.scheduledRule)) {
           data.StackResources.forEach(function(e) {
             if (e.ResourceType === 'AWS::Lambda::Function' &&
               e.LogicalResourceId === rule.config.name) {

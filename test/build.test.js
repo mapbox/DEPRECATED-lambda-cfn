@@ -14,8 +14,8 @@ tape('Compile unit tests', function(t) {
     name: 'simple',
     sourcePath: 'rules/myRule.js'
   })], {});
-  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template'), "utf8"));
 
+  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template'), "utf8"));
   t.deepEqual(simpleBuilt, simpleFixture, 'simple build is equal to fixture');
 
   var fullConfig = {

@@ -8,7 +8,7 @@ var rules = [];
 
 var lambdaCfn = require('lambda-cfn');
 
-lambdaCfn.load(defs, true);
+lambdaCfn.load(defs, false, true);
 
 for (var d in defs.exports) {
   rules.push(defs.exports[d]);

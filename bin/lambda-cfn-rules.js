@@ -6,7 +6,7 @@ var queue = require('queue-async');
 var defs = { exports: {} };
 var rules = [];
 
-var lambdaCfn = require('lambda-cfn');
+var lambdaCfn = require('..');
 
 lambdaCfn.load(defs, false, true);
 

@@ -1,21 +1,34 @@
 #!/usr/bin/env node
 
+var fs = require('fs');
+var path = require('path');
 var AWS = require('aws-sdk');
 var queue = require('queue-async');
 
-var defs = { exports: {} };
-var rules = [];
-
-var lambdaCfn = require('..');
-
-lambdaCfn.load(defs, false, true);
-
-for (var d in defs.exports) {
-  rules.push(defs.exports[d]);
-}
-
 if (!process.argv[2])
   throw new Error('Must provide name of CloudFormation stack as first argument');
+
+var rules = [];
+var files = fs.readdirSync(path.join(process.cwd(), 'cloudformation'));
+
+for (var i = 0; i < files.length; i++) {
+  var file = files[i];
+  if (path.extname(file) == '.js' && file.indexOf('.template.') > -1) {
+    templateFile = path.join(process.cwd(), 'cloudformation', file);
+    break;
+  }
+}
+
+var template = require(templateFile);
+for (var r in template.Resources) {
+  if (template.Resources[r].Type == 'AWS::Lambda::Function' &&
+      template.Resources[r].Metadata &&
+      template.Resources[r].Metadata.sourcePath) {
+    var sourcePath = path.join(process.cwd(), template.Resources[r].Metadata.sourcePath);
+    var rule = require(sourcePath);
+    rules.push(rule);
+  }
+}
 
 var stackName = process.argv[2];
 var region = process.env.AWS_DEFAULT_REGION || 'us-east-1';

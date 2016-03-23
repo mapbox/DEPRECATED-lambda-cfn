@@ -19,10 +19,10 @@
   "dependencies": {
     "streambot": "3.4.0",
     "queue-async": "1.0.7",
-    "app-root-path": "1.2.0"
+    "app-root-path": "1.2.0",
+    "aws-sdk": "^2.2.35"
   },
   "devDependencies": {
-    "aws-sdk": "^2.2.35",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
     "tape": "^4.5.1"

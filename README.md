@@ -29,7 +29,7 @@ where in `myHandler.js` you've exported:
 
 After uploading a zip of your project to a location in Lambda, you can then deploy this javascript CloudFormation template with [cfn-config](https://github.com/mapbox/cfn-config#usage-1) to deploy your function.
 
-See the [patrol](https://github.com/mapbox/patrol) README for more examples.
+See the [patrol](https://github.com/mapbox/patrol) README for more examples and the [rules spec](https://github.com/mapbox/lambda-cfn/blob/master/RULE-SPEC.md) for a complete reference.
 
 ## Why
 

@@ -1,4 +1,4 @@
-# Crowsnest rule specification
+# Patrol rule specification
 ## Common to all rules
 - JavaScript based rule functions only
 - Runs on Node.js v0.10.36 per the [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html)
@@ -19,14 +19,14 @@
 	};
 	```
 
-- The rule's `name` in the `config` property must be unique across all rules imported into a single crowsnest stack, see [issue #15](https://github.com/mapbox/lambda-cfn/issues/15).
+- The rule's `name` in the `config` property must be unique across all rules imported into a single patrol stack, see [issue #15](https://github.com/mapbox/lambda-cfn/issues/15).
 - Lambda runtime parameters for `memorySize` and `timeout` are set per rule and are optional.
     - `memorySize` must a multiple of 64MB between 128MB and 1536MB. If not specified, the default is 128mb.
     - `timeout` can be 0 to 300 seconds. If not specified, the default is 60 seconds.
 
 ## Environment variables and rule parameters
-- Environment variables are passed to the AWS Lambda function's for a crowsnest rule via CloudFormation template parameters that are sent to a running instance of [streambot](http://github.com/mapbox/streambot).
-- Environment variables can be accessed within a crowsnest rule via the `process.env` object.
+- Environment variables are passed to the AWS Lambda function's for a patrol rule via CloudFormation template parameters that are sent to a running instance of [streambot](http://github.com/mapbox/streambot).
+- Environment variables can be accessed within a patrol rule via the `process.env` object.
 - Parameters are optional, but if specified require both a `Type` and a `Description` property.
 
     ```javascript
@@ -44,7 +44,7 @@
 
 ## Rule definitions
 ### CloudWatch Event rule
-Cloudwatch Event rules support triggering the crowsnest rule's Lambda function with a CloudWatch Event (`eventRule`) or a scheduled CloudWatch Event (`scheduledRule`). A rule definition can specify an `eventRule`, a `scheduledRule`, or both. If you want the rule to fire on a schedule and on an event filter, but at least one must be present.
+Cloudwatch Event rules support triggering the patrol rule's Lambda function with a CloudWatch Event (`eventRule`) or a scheduled CloudWatch Event (`scheduledRule`). A rule definition can specify an `eventRule`, a `scheduledRule`, or both. If you want the rule to fire on a schedule and on an event filter, but at least one must be present.
 
 See [Using CloudWatch Events](http://docs.aws.amazon.com/AmazonCloudWatch/latest/DeveloperGuide/WhatIsCloudWatchEvents.html) for more information about AWS CloudWatch Events.
 
@@ -72,7 +72,7 @@ module.exports.config = {
 ### SNS subscribed rule
 SNS rules subscribe the lambda function to a unique SNS topic. Events pushed to the topic will trigger the lambda function and will pass the event payload directly to it. `lambda-cfn` creates a unique SNS topic for each SNS rule, and each topic has a unique access and secret key generated for it, found in the template output of the CloudFormation console.
 
-SNS rules allow the integration of non-AWS event sources into Crowsnest, such as Github and Zapier. Due to  limitations of Zapier, rules of this type are granted the `listTopic` permission for the AWS account. For more information on SNS subscribed lambdas see [Invoking Lambda functions using Amazon SNS notifications](http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html).
+SNS rules allow the integration of non-AWS event sources into Patrol, such as Github and Zapier. Due to  limitations of Zapier, rules of this type are granted the `listTopic` permission for the AWS account. For more information on SNS subscribed lambdas see [Invoking Lambda functions using Amazon SNS notifications](http://docs.aws.amazon.com/sns/latest/dg/sns-lambda.html).
 
 #### Example
 ```javascript

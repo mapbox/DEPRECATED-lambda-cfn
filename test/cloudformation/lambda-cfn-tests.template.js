@@ -6,6 +6,6 @@ module.exports = lambdaCfn(
   ],
   {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "crowsnest"
+    "Description": "patrol"
   }
 );

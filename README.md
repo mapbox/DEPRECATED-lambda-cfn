@@ -17,7 +17,7 @@ module.exports = lambdaCfn(
   ],
   {
     "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "crowsnest"
+    "Description": "my stack"
   }
 );
 ```
@@ -29,7 +29,7 @@ where in `myHandler.js` you've exported:
 
 After uploading a zip of your project to a location in Lambda, you can then deploy this javascript CloudFormation template with [cfn-config](https://github.com/mapbox/cfn-config#usage-1) to deploy your function.
 
-See the [crowsnest](https://github.com/mapbox/crowsnest) README for more examples.
+See the [patrol](https://github.com/mapbox/patrol) README for more examples.
 
 ## Why
 
@@ -48,4 +48,4 @@ lambda-cfn adheres to a [rules spec](https://github.com/mapbox/lambda-cfn/blob/m
 
 ## Basic use
 
-Refer to the [crowsnest](https://github.com/mapbox/crowsnest) README, and especially its "getting started" guide for an example usage of lambda-cfn.
+Refer to the [patrol](https://github.com/mapbox/patrol) README, and especially its "getting started" guide for an example usage of lambda-cfn.

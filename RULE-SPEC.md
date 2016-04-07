@@ -12,6 +12,15 @@
 		parameters: {
 			/* RULE_PARAMETERS */
 		},
+                statements: [
+                  {
+                    Effect: 'Allow',
+                    Action: [
+                      's3:GetObject'
+                    ],
+                    Resource: 'arn:aws:s3:::mySuperDuperBucket'
+                  }
+                ]
 		/* RULE_DEFINITION */
 	};
 	module.exports.fn = function(event,callback) {
@@ -23,6 +32,7 @@
 - Lambda runtime parameters for `memorySize` and `timeout` are set per rule and are optional.
     - `memorySize` must a multiple of 64MB between 128MB and 1536MB. If not specified, the default is 128mb.
     - `timeout` can be 0 to 300 seconds. If not specified, the default is 60 seconds.
+- `statements` is an optional array of IAM policy statements which will be added to the Lambda IAM role.  If your Lambda function requires additional AWS API access, specify it here.
 
 ## Environment variables and rule parameters
 - Environment variables are passed to the AWS Lambda function's for a patrol rule via CloudFormation template parameters that are sent to a running instance of [streambot](http://github.com/mapbox/streambot).

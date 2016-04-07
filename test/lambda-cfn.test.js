@@ -389,6 +389,7 @@ tape('template outputs unit tests', function(t) {
   var def = outputs({name: 'myHandler'});
   t.equal(def,undefined,'non-snsRules have no outputs');
   def = outputs({name: 'myHandler',snsRule:{}});
+  t.equal(def.myHandlerSNSTopic.Value.Ref,'myHandlerSNSTopic','SNS topic output is set');
   t.equal(def.myHandlerSNSUserAccessKey.Value.Ref,'myHandlerSNSUserAccessKey','User access key output is set');
   t.equal(def.myHandlerSNSUserSecretAccessKey.Value["Fn::GetAtt"][0],'myHandlerSNSUserAccessKey','User secret access key output is set');
   t.end();

@@ -3,7 +3,7 @@
 var fs = require('fs');
 var path = require('path');
 var AWS = require('aws-sdk');
-var queue = require('queue-async');
+var d3 = require('d3-queue');
 
 if (!process.argv[2])
   throw new Error('Must provide name of CloudFormation stack as first argument');
@@ -32,7 +32,7 @@ for (var r in template.Resources) {
 
 var stackName = process.argv[2];
 var region = process.env.AWS_DEFAULT_REGION || 'us-east-1';
-var q = queue(1);
+var q = d3.queue(1);
 var cfn = new AWS.CloudFormation({region: region});
 var cwe = new AWS.CloudWatchEvents({region: region});
 var lambda = new AWS.Lambda({region: region});
@@ -45,7 +45,7 @@ q.awaitAll(function(err) {
 });
 
 function createEventRules(callback) {
-  var q = queue();
+  var q = d3.queue();
   rules.forEach(function(rule) {
     var name = stackName + '-' + rule.config.name;
     if (rule.config.eventRule) {
@@ -106,7 +106,7 @@ function createEventRules(callback) {
 }
 
 function getStackResources(callback) {
-  var q = queue();
+  var q = d3.queue();
 
   cfn.describeStackResources({StackName: stackName}, function(err, data) {
     if (err) throw err;

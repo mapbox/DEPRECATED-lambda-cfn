@@ -1,19 +1,30 @@
 var tape = require('tape');
 var lambdaRules = require('../bin/lambda-cfn-rules');
 var nock = require('nock');
+var path = require('path');
 
 var getMatchedRules = lambdaRules.getMatchedRules;
 var removeTargets = lambdaRules.removeTargets;
 var deleteRuleset = lambdaRules.deleteRuleset;
 var testRules = lambdaRules.matchedRules;
+var loadTemplate = lambdaRules.loadTemplate;
+var templateRules = lambdaRules.templateRules;
 var argv = lambdaRules.argv;
 
 argv.prefix = 'test';
+argv.stack = 'lambdaTest';
 
 if (process.env.AWS_ACCESS_KEY_ID == undefined) {
   process.env.AWS_ACCESS_KEY_ID = 'fakefakefake';
   process.env.AWS_SECRET_ACCESS_KEY = 'fakefakefake';
 }
+
+tape('load rules from template', function(t) {
+  loadTemplate(path.join(process.cwd(),'/test/cloudformation/lambda-rules.template.js'), function(err,data) {
+    t.equal(templateRules[0].config.stackRuleName,'lambdaTest-test-dummyRole','Matched stack-repo-ruleName pattern');
+    t.end();
+  });
+});
 
 tape('get matching rules', function(t) {
   var ruleReq = nock('https://events.us-east-1.amazonaws.com:443', {"encodedQueryParams":true})

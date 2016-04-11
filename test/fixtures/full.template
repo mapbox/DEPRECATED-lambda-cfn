@@ -22,11 +22,11 @@
       "Type": "String",
       "Description": "Alarm notifications will send to this email address"
     },
-    "githubToken": {
+    "fullgithubToken": {
       "Type": "String",
       "Description": "Github API token with users scope"
     },
-    "myBucket": {
+    "fullmyBucket": {
       "Type": "String",
       "Description": "Bucket where to store"
     }

@@ -14,7 +14,8 @@
     "test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
   },
   "bin": {
-    "lambda-cfn-rules": "./bin/lambda-cfn-rules.js"
+    "lambda-cfn-rules": "./bin/lambda-cfn-rules.js",
+    "lambda-cfn-template": "./bin/lambda-cfn-template.js"
   },
   "dependencies": {
     "streambot": "3.4.0",

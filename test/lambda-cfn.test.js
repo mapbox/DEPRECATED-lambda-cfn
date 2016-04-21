@@ -12,6 +12,7 @@ var lambdaSnsTopic = lambdaCfn.lambdaSnsTopic;
 var lambdaSnsUser = lambdaCfn.lambdaSnsUser;
 var lambdaSnsUserAccessKey = lambdaCfn.lambdaSnsUserAccessKey;
 var outputs = lambdaCfn.outputs;
+var cweRules = lambdaCfn.cweRules;
 
 tape('parameter unit tests', function(t) {
   t.throws(
@@ -252,11 +253,11 @@ tape('streambotEnv unit tests', function(t) {
         "FunctionName": {
           "Ref": "myFunction"
         },
-        "param1": {
-          "Ref": "param1"
+        "myFunctionparam1": {
+          "Ref": "myFunctionparam1"
         },
-        "param2": {
-          "Ref": "param2"
+        "myFunctionparam2": {
+          "Ref": "myFunctionparam2"
         },
         "LambdaCfnAlarmSNSTopic": {
           "Ref": "LambdaCfnAlarmSNSTopic"
@@ -315,6 +316,63 @@ tape('splitOnComma unit tests', function(t) {
     'split string with comma and no space'
   );
 
+  t.end();
+});
+
+tape('CloudWatch Event rules unit tests', function(t) {
+  var eventDef = {
+    name: 'myHandler'
+  };
+  var eventRes;
+
+  t.throws(
+    function() {
+      cweRules({});
+    }, /name property required for cweRules/, 'Fail when no name property'
+  );
+
+  t.throws(
+    function() {
+      cweRules(eventDef);
+    }, /ruleType property required for cweRules/, 'Fail when no ruleType property'
+  );
+
+  t.throws(
+    function() {
+      cweRules(eventDef,'asdf');
+    }, /unknown ruleType property/, 'Fail when ruleType property unknown'
+  );
+
+  eventDef.eventRule = {};
+
+  t.throws(
+    function() {
+      cweRules(eventDef,'eventRule');
+    }, /eventPattern required for eventRule/, 'Fail when eventPattern not specified for eventRule'
+  );
+
+  t.throws(
+    function() {
+      cweRules(eventDef,'scheduledRule');
+    }, /scheduled rule expression cannot be undefined/, 'Fail when scheduled rule expression is undefined'
+  );
+
+  eventDef.eventRule.eventPattern = {
+    test: 'test'
+  };
+
+  var eventPat = {
+    test: 'test'
+  };
+  eventRes = (cweRules(eventDef,'eventRule'));
+  t.equal(eventRes.Type, 'AWS::Events::Rule');
+  t.deepLooseEqual(eventRes.Properties.EventPattern, eventPat,'EventPattern found');
+  t.equal(eventRes.Properties.Name["Fn::Join"][1][2],'event','event rule named correctly');
+
+  eventDef.scheduledRule = 'rate(5 minutes)';
+  eventRes = (cweRules(eventDef,'scheduledRule'));
+    t.equal(eventRes.Properties.ScheduleExpression,'rate(5 minutes)','ScheduleExpression found');
+  t.equal(eventRes.Properties.Name["Fn::Join"][1][2],'scheduled','scheduled rule named correctly');
   t.end();
 });
 

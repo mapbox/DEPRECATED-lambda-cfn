@@ -1,0 +1,304 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "LambdaCfn",
+    "Parameters": {
+        "CodeS3Bucket": {
+            "Type": "String",
+            "Description": "lambda function S3 bucket location"
+        },
+        "CodeS3Prefix": {
+            "Type": "String",
+            "Description": "lambda function S3 prefix location"
+        },
+        "GitSha": {
+            "Type": "String",
+            "Description": "lambda function S3 prefix location"
+        },
+        "StreambotEnv": {
+            "Type": "String",
+            "Description": "StreambotEnv lambda function ARN"
+        },
+        "AlarmEmail": {
+            "Type": "String",
+            "Description": "Alarm notifications will send to this email address"
+        },
+        "scheduledRuletoken": {
+            "Type": "String",
+            "Description": "token"
+        }
+    },
+    "Resources": {
+        "scheduledRule": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "CodeS3Bucket"
+                    },
+                    "S3Key": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                {
+                                    "Ref": "CodeS3Prefix"
+                                },
+                                {
+                                    "Ref": "GitSha"
+                                },
+                                ".zip"
+                            ]
+                        ]
+                    }
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaCfnRole",
+                        "Arn"
+                    ]
+                },
+                "Description": {
+                    "Ref": "AWS::StackName"
+                },
+                "Handler": "index.scheduledRule",
+                "Runtime": "nodejs",
+                "Timeout": 60,
+                "MemorySize": 128
+            },
+            "Metadata": {
+                "sourcePath": "rules/scheduledRule.js"
+            }
+        },
+        "scheduledRulePermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "scheduledRule",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "events.amazonaws.com",
+                "SourceArn": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "arn:aws:events:",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ":",
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ":rule/",
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "*"
+                        ]
+                    ]
+                }
+            }
+        },
+        "StreambotEnvscheduledRule": {
+            "Type": "Custom::StreambotEnv",
+            "Properties": {
+                "ServiceToken": {
+                    "Ref": "StreambotEnv"
+                },
+                "FunctionName": {
+                    "Ref": "scheduledRule"
+                },
+                "scheduledRuletoken": {
+                    "Ref": "scheduledRuletoken"
+                },
+                "LambdaCfnAlarmSNSTopic": {
+                    "Ref": "LambdaCfnAlarmSNSTopic"
+                }
+            }
+        },
+        "scheduledRuleScheduledRule": {
+            "Type": "AWS::Events::Rule",
+            "Properties": {
+                "ScheduleExpression": "rate(5 minutes)",
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "scheduledRule",
+                            "scheduled"
+                        ]
+                    ]
+                },
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "LambdaCfnRole",
+                        "Arn"
+                    ]
+                },
+                "State": "ENABLED",
+                "Targets": [
+                    {
+                        "Arn": {
+                            "Fn::GetAtt": [
+                                "scheduledRule",
+                                "Arn"
+                            ]
+                        },
+                        "Id": "scheduledRule"
+                    }
+                ]
+            }
+        },
+        "scheduledRuleAlarmErrors": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "0",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/Lambda",
+                "Dimensions": [
+                    {
+                        "Name": "FunctionName",
+                        "Value": {
+                            "Ref": "scheduledRule"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold",
+                "MetricName": "Errors"
+            }
+        },
+        "scheduledRuleAlarmNoInvocations": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "0",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/Lambda",
+                "Dimensions": [
+                    {
+                        "Name": "FunctionName",
+                        "Value": {
+                            "Ref": "scheduledRule"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "LessThanThreshold",
+                "MetricName": "Invocations"
+            }
+        },
+        "LambdaCfnRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        },
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "events.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "basic",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "dynamodb:GetItem"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:dynamodb:us-east-1:",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":table/streambot-env*"
+                                            ]
+                                        ]
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "sns:Publish"
+                                    ],
+                                    "Resource": {
+                                        "Ref": "LambdaCfnAlarmSNSTopic"
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "iam:SimulateCustomPolicy"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "LambdaCfnAlarmSNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "TopicName": {
+                    "Ref": "AWS::StackName"
+                },
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Ref": "AlarmEmail"
+                        },
+                        "Protocol": "email"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+    }
+}

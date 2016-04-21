@@ -1,6 +1,6 @@
 {
   "name": "lambda-cfn",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "CloudFormation boiler plate for lambda functions",
   "main": "lib/lambda-cfn.js",
   "engines": {
@@ -14,7 +14,6 @@
     "test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
   },
   "bin": {
-    "lambda-cfn-rules": "./bin/lambda-cfn-rules.js",
     "lambda-cfn-template": "./bin/lambda-cfn-template.js"
   },
   "dependencies": {

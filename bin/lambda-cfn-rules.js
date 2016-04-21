@@ -13,50 +13,56 @@ var argv = require('yargs')
       .command('delete <prefix>','deletes CloudWatch Event Rules matching the given prefix string')
       .argv;
 
+var root = process.env.LAMBDA_TASK_ROOT ?
+      process.env.LAMBDA_TASK_ROOT :
+      require('app-root-path').path;
+
+
 var lambdaCfnRules = module.exports;
 lambdaCfnRules.getMatchedRules = getMatchedRules;
 lambdaCfnRules.deleteRuleset = deleteRuleset;
 lambdaCfnRules.removeTargets = removeTargets;
 lambdaCfnRules.argv = argv;
+lambdaCfnRules.loadTemplate = loadTemplate;
 
 var rules = [];
 var matchedRules = [];
+
+//exported for testing
+lambdaCfnRules.templateRules = rules;
 lambdaCfnRules.matchedRules = matchedRules;
 
 
-
-if (process.env.NODE_ENV == 'test') {
-  var files = fs.readdirSync(path.join(process.cwd(), 'test/cloudformation'));
-} else {
-  var files = fs.readdirSync(path.join(process.cwd(), 'cloudformation'));
-}
-
-for (var i = 0; i < files.length; i++) {
-  var file = files[i];
-  if (path.extname(file) == '.js' && file.indexOf('.template.') > -1) {
-    if (process.env.NODE_ENV == 'test') {
-      templateFile = path.join(process.cwd(), 'test/cloudformation/lambda-rules.template.js');
-    } else {
-      templateFile = path.join(process.cwd(), 'cloudformation', file);
+function loadTemplate(templateFilePath, next) {
+  var templateFile;
+  if (templateFilePath && templateFilePath !== true) {
+    templateFile = templateFilePath;
+  } else {
+    var files = fs.readdirSync(path.join(process.cwd(), 'cloudformation'));
+    for (var i = 0; i < files.length; i++) {
+      var file = files[i];
+      if (path.extname(file) == '.js' && file.indexOf('.template.') > -1) {
+        templateFile = path.join(root, 'cloudformation', file);
+        break;
+      }
     }
-    break;
   }
+
+  var template = require(templateFile);
+  for (var r in template.Resources) {
+    if (template.Resources[r].Type == 'AWS::Lambda::Function' &&
+        template.Resources[r].Metadata &&
+        template.Resources[r].Metadata.sourcePath) {
+      var sourcePath = path.join(root, template.Resources[r].Metadata.sourcePath);
+      var rule = require(sourcePath);
+      rule.config.stackRuleName = argv.stack + '-' + rule.config.name;
+      rules.push(rule);
+    }
+  }
+  next();
 }
 
-var template = require(templateFile);
-
-for (var r in template.Resources) {
-  if (template.Resources[r].Type == 'AWS::Lambda::Function' &&
-      template.Resources[r].Metadata &&
-      template.Resources[r].Metadata.sourcePath) {
-    var sourcePath = path.join(process.cwd(), template.Resources[r].Metadata.sourcePath);
-    var rule = require(sourcePath);
-    rule.config.stackRuleName = argv.stack + '-' + rule.config.name;
-    rules.push(rule);
-  }
-}
-
-var stackName = argv.stack;
+var stackName= argv.stack;
 var region = process.env.AWS_DEFAULT_REGION || 'us-east-1';
 var q = d3.queue(1);
 var cfn = new AWS.CloudFormation({region: region});
@@ -64,6 +70,7 @@ var cwe = new AWS.CloudWatchEvents({region: region});
 var lambda = new AWS.Lambda({region: region});
 
 if (argv._ == 'create') {
+  q.defer(load,null);
   q.defer(getStackResources);
   q.defer(createEventRules);
   q.awaitAll(function(err) {
@@ -73,6 +80,7 @@ if (argv._ == 'create') {
 }
 
 if (argv._ == 'delete') {
+  q.defer(load,null);
   q.defer(getMatchedRules);
   q.defer(listRules);
   q.defer(deleteRules);
@@ -83,6 +91,7 @@ if (argv._ == 'delete') {
 }
 
 if (argv._ == 'list') {
+  q.defer(load,null);
   q.defer(getMatchedRules);
   q.defer(listRules);
   q.awaitAll(function(err) {
@@ -126,6 +135,27 @@ function deleteRuleset(ruleset, callback) {
   q.defer(removeTargets,ruleset);
   ruleset.forEach(function(rule) {
     var deleteParams = { Name: rule.config.stackRuleName };
+    q.defer(function(next) {
+      cwe.deleteRule(deleteParams, function(err,res) {
+        if (err && err.code == 'ValidationException') {
+          console.log('ERROR: ' + rule.config.stackRuleName + ' still has targets, skipping..');
+          return next();
+        }
+        if (err) return next(err);
+        console.log('DELETED: '+ rule.config.stackRuleName);
+        next();
+      });
+    });
+  });
+  q.awaitAll(function(err) {
+    callback(err);
+  });
+}
+
+function removeTargets(ruleset, callback) {
+  var q = d3.queue(1);
+  ruleset.forEach(function(rule) {
+    var listParams = { Rule: rule.config.stackRuleName };
     q.defer(function(next) {
       cwe.deleteRule(deleteParams, function(err,res) {
         if (err && err.code == 'ValidationException') {

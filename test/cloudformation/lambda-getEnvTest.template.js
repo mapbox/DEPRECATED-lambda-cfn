@@ -1,8 +1,8 @@
-var lambdaCfn = require('../../');
+var lambdaCfn = require(process.cwd());
 
 module.exports = lambdaCfn(
   [
-    'test/rules/dummyRole.js'
+    'test/patrol-rules-diagnostic/rules/getEnvTest.js'
   ],
   {
     "AWSTemplateFormatVersion": "2010-09-09",

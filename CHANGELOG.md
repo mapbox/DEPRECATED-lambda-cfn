@@ -3,8 +3,12 @@ All notable changes to this project will be documented in this file. For change 
 
 ## Unreleased
 
+## 0.0.9 2016-04-21
+- Uses newly released CFN support for Cloudwatch Event Rules
 - Update from `queue-async` to `d3-queue`
-- Added rule deletion and rule list options to the lambda-cfn-rules command
+- Removed lambda-rules binary
+- Rules are namespaced with their repository name
+- Parameters are namespaced with repository name and rule name
 
 ## 0.0.8 2016-04-08
 

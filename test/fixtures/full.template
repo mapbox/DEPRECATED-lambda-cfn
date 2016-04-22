@@ -114,11 +114,11 @@
         "FunctionName": {
           "Ref": "full"
         },
-        "githubToken": {
-          "Ref": "githubToken"
+        "fullgithubToken": {
+          "Ref": "fullgithubToken"
         },
-        "myBucket": {
-          "Ref": "myBucket"
+        "fullmyBucket": {
+          "Ref": "fullmyBucket"
         },
         "LambdaCfnAlarmSNSTopic": {
           "Ref": "LambdaCfnAlarmSNSTopic"

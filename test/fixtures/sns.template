@@ -1,0 +1,366 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "LambdaCfn",
+    "Parameters": {
+        "CodeS3Bucket": {
+            "Type": "String",
+            "Description": "lambda function S3 bucket location"
+        },
+        "CodeS3Prefix": {
+            "Type": "String",
+            "Description": "lambda function S3 prefix location"
+        },
+        "GitSha": {
+            "Type": "String",
+            "Description": "lambda function S3 prefix location"
+        },
+        "StreambotEnv": {
+            "Type": "String",
+            "Description": "StreambotEnv lambda function ARN"
+        },
+        "AlarmEmail": {
+            "Type": "String",
+            "Description": "Alarm notifications will send to this email address"
+        },
+        "snstoken": {
+            "Type": "String",
+            "Description": "token"
+        }
+    },
+    "Resources": {
+        "sns": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "S3Bucket": {
+                        "Ref": "CodeS3Bucket"
+                    },
+                    "S3Key": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                {
+                                    "Ref": "CodeS3Prefix"
+                                },
+                                {
+                                    "Ref": "GitSha"
+                                },
+                                ".zip"
+                            ]
+                        ]
+                    }
+                },
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaCfnRole",
+                        "Arn"
+                    ]
+                },
+                "Description": {
+                    "Ref": "AWS::StackName"
+                },
+                "Handler": "index.sns",
+                "Runtime": "nodejs",
+                "Timeout": 60,
+                "MemorySize": 128
+            },
+            "Metadata": {
+                "sourcePath": "rules/sns.js"
+            }
+        },
+        "snsPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "Properties": {
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "sns",
+                        "Arn"
+                    ]
+                },
+                "Action": "lambda:InvokeFunction",
+                "Principal": "sns.amazonaws.com",
+                "SourceArn": {
+                    "Ref": "snsSNSTopic"
+                }
+            }
+        },
+        "StreambotEnvsns": {
+            "Type": "Custom::StreambotEnv",
+            "Properties": {
+                "ServiceToken": {
+                    "Ref": "StreambotEnv"
+                },
+                "FunctionName": {
+                    "Ref": "sns"
+                },
+                "snstoken": {
+                    "Ref": "snstoken"
+                },
+                "LambdaCfnAlarmSNSTopic": {
+                    "Ref": "LambdaCfnAlarmSNSTopic"
+                }
+            }
+        },
+        "snsSNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "DisplayName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "sns"
+                        ]
+                    ]
+                },
+                "TopicName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "sns"
+                        ]
+                    ]
+                },
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Fn::GetAtt": [
+                                "sns",
+                                "Arn"
+                            ]
+                        },
+                        "Protocol": "lambda"
+                    }
+                ]
+            }
+        },
+        "snsSNSUser": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Policies": [
+                    {
+                        "PolicyName": "snsSNSTopicPolicy",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Resource": [
+                                        {
+                                            "Ref": "snsSNSTopic"
+                                        }
+                                    ],
+                                    "Action": [
+                                        "sns:ListTopics",
+                                        "sns:Publish"
+                                    ],
+                                    "Effect": "Allow"
+                                },
+                                {
+                                    "Resource": [
+                                        {
+                                            "Fn::Join": [
+                                                "",
+                                                [
+                                                    "arn:aws:sns:",
+                                                    {
+                                                        "Ref": "AWS::Region"
+                                                    },
+                                                    ":",
+                                                    {
+                                                        "Ref": "AWS::AccountId"
+                                                    },
+                                                    ":*"
+                                                ]
+                                            ]
+                                        }
+                                    ],
+                                    "Action": [
+                                        "sns:ListTopics"
+                                    ],
+                                    "Effect": "Allow"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "snsSNSUserAccessKey": {
+            "Type": "AWS::IAM::AccessKey",
+            "Properties": {
+                "UserName": {
+                    "Ref": "snsSNSUser"
+                }
+            }
+        },
+        "snsAlarmErrors": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "0",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/Lambda",
+                "Dimensions": [
+                    {
+                        "Name": "FunctionName",
+                        "Value": {
+                            "Ref": "sns"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold",
+                "MetricName": "Errors"
+            }
+        },
+        "snsAlarmNoInvocations": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "0",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/Lambda",
+                "Dimensions": [
+                    {
+                        "Name": "FunctionName",
+                        "Value": {
+                            "Ref": "sns"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "LessThanThreshold",
+                "MetricName": "Invocations"
+            }
+        },
+        "LambdaCfnRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "lambda.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        },
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "events.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Path": "/",
+                "Policies": [
+                    {
+                        "PolicyName": "basic",
+                        "PolicyDocument": {
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "logs:*"
+                                    ],
+                                    "Resource": "arn:aws:logs:*:*:*"
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "dynamodb:GetItem"
+                                    ],
+                                    "Resource": {
+                                        "Fn::Join": [
+                                            "",
+                                            [
+                                                "arn:aws:dynamodb:us-east-1:",
+                                                {
+                                                    "Ref": "AWS::AccountId"
+                                                },
+                                                ":table/streambot-env*"
+                                            ]
+                                        ]
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "sns:Publish"
+                                    ],
+                                    "Resource": {
+                                        "Ref": "LambdaCfnAlarmSNSTopic"
+                                    }
+                                },
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "iam:SimulateCustomPolicy"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "LambdaCfnAlarmSNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "Properties": {
+                "TopicName": {
+                    "Ref": "AWS::StackName"
+                },
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Ref": "AlarmEmail"
+                        },
+                        "Protocol": "email"
+                    }
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "snsSNSTopic": {
+            "Value": {
+                "Ref": "snsSNSTopic"
+            }
+        },
+        "snsSNSUserAccessKey": {
+            "Value": {
+                "Ref": "snsSNSUserAccessKey"
+            }
+        },
+        "snsSNSUserSecretAccessKey": {
+            "Value": {
+                "Fn::GetAtt": [
+                    "snsSNSUserAccessKey",
+                    "SecretAccessKey"
+                ]
+            }
+        }
+    }
+}

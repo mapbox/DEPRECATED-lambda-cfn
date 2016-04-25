@@ -13,6 +13,10 @@ var lambdaSnsUser = lambdaCfn.lambdaSnsUser;
 var lambdaSnsUserAccessKey = lambdaCfn.lambdaSnsUserAccessKey;
 var outputs = lambdaCfn.outputs;
 var cweRules = lambdaCfn.cweRules;
+var apiGateway = lambdaCfn.apiGateway;
+var apiDeployment = lambdaCfn.apiDeployment;
+var apiKey = lambdaCfn.apiKey;
+var gatewayRules = lambdaCfn.gatewayRules;
 
 tape('parameter unit tests', function(t) {
   t.throws(
@@ -32,7 +36,9 @@ tape('parameter unit tests', function(t) {
     }, /must contain Description property/, 'Fail when parameter lacks Description property'
 
   );
-
+  var def = {name: 'invalid_char&^#--In!@Name', parameters:  {a: { Type: 'foo',Description: 'foo'}}};
+  var r  = parameters(def);
+  t.looseEqual(r,{invalidcharInNamea: {Description: 'foo',Type: 'foo'}},'Strips function name and generates namespace');
   t.end();
 
 });
@@ -376,6 +382,85 @@ tape('CloudWatch Event rules unit tests', function(t) {
   t.end();
 });
 
+tape('apiGateway template stub unit tests', function(t) {
+  var g = apiGateway();
+  t.equal(g.Type, 'AWS::ApiGateway::RestApi','Found RestAPI resource type');
+  t.equal(g.Properties.Name.Ref,'AWS::StackName','RestAPI set to stack name');
+  t.end();
+});
+
+tape('apiDeployment template stub unit tests', function(t) {
+  var d = apiDeployment();
+  t.equal(d.Type, 'AWS::ApiGateway::Deployment','Found API deployment resource type');
+  t.equal(d.Properties.RestApiId.Ref,'ApiGateway','Deployment points to RestAPI');
+  t.end();
+});
+
+tape('apiKey template stub unit tests', function(t) {
+  var k = apiKey();
+  t.equal(k.Type, 'AWS::ApiGateway::ApiKey','Found API Key resource type');
+  t.equal(k.Properties.Name.Ref,'AWS::StackName');
+  t.deepLooseEqual(k.DependsOn,'ApiDeployment');
+  t.equal(k.Properties.Enabled,'true');
+  t.equal(k.Properties.StageKeys[0].RestApiId.Ref,'ApiGateway');
+  t.equal(k.Properties.StageKeys[0].StageName,'prod');
+  t.end();
+});
+
+tape('Gateway rule unit tests', function(t) {
+  t.throws(
+    function() {
+      gatewayRules({});
+    }, /name property required/, 'Fail when no name property'
+  );
+  var def = {name: 'myHandler'};
+  t.throws(
+    function() {
+      gatewayRules(def);
+    }, /resource type required for gateway rule template/, 'Fail when resource type not specified'
+  );
+  t.throws(
+    function() {
+      gatewayRules(def,'fakefake');
+    }, /Invalid api gateway resource type/, 'Fail with invalid resource type'
+  );
+
+  def.gatewayRule = {};
+  def.gatewayRule.method = 'FAKE';
+  t.throws(
+    function() {
+      gatewayRules(def,'method');
+    }, /Invalid client HTTP method specified/, 'Fail with invalid client HTTP method'
+  );
+
+  def.gatewayRule.method = 'post';
+  var r = gatewayRules(def,'resource');
+  t.equal(r.Type,'AWS::ApiGateway::Resource');
+  t.equal(r.Properties.RestApiId.Ref,'ApiGateway');
+  t.equal(r.Properties.ParentId["Fn::GetAtt"][0],'ApiGateway');
+  t.equal(r.Properties.ParentId["Fn::GetAtt"][1],'RootResourceId');
+  t.equal(r.Properties.PathPart,'myhandler');
+  r = gatewayRules(def,'method');
+  t.equal(r.Type,'AWS::ApiGateway::Method');
+  t.equal(r.Properties.RestApiId.Ref,'ApiGateway');
+  t.equal(r.Properties.ResourceId.Ref,'myHandlerGatewayRuleResource');
+  t.equal(r.Properties.AuthorizationType,'None');
+  t.equal(r.Properties.HttpMethod,'POST');
+  t.equal(r.Properties.Integration.Type,'AWS');
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][0], 'arn:aws:apigateway:');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][1], {Ref: "AWS::Region"});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][2], ':lambda:path/2015-03-31/functions/');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][3], {"Fn::GetAtt":["myHandler","Arn"]});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][4], '/invocations');
+
+
+  def.gatewayRule.apiKey = true;
+  r = gatewayRules(def,'method');
+  t.equal(r.Properties.ApiKeyRequired,'true');
+
+  t.end();
+});
+
 tape('lambdaSnsTopic unit tests', function(t) {
 
   t.throws(
@@ -445,10 +530,16 @@ tape('template outputs unit tests', function(t) {
   );
 
   var def = outputs({name: 'myHandler'});
-  t.equal(def,undefined,'non-snsRules have no outputs');
+  t.looseEqual(def,{},'non-snsRules have empty output');
   def = outputs({name: 'myHandler',snsRule:{}});
   t.equal(def.myHandlerSNSTopic.Value.Ref,'myHandlerSNSTopic','SNS topic output is set');
   t.equal(def.myHandlerSNSUserAccessKey.Value.Ref,'myHandlerSNSUserAccessKey','User access key output is set');
   t.equal(def.myHandlerSNSUserSecretAccessKey.Value["Fn::GetAtt"][0],'myHandlerSNSUserAccessKey','User secret access key output is set');
+  def = outputs({name: 'myHandler',gatewayRule:{}});
+  t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][1],{Ref: "ApiGateway"});
+  t.equal(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][2],".execute-api.");
+  t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][3],{Ref: "AWS::Region"});
+  t.equal(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][4],".amazonaws.com/prod/");
+  t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][5],"myhandler");
   t.end();
 });

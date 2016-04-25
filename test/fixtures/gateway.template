@@ -22,17 +22,13 @@
             "Type": "String",
             "Description": "Alarm notifications will send to this email address"
         },
-        "fullgithubToken": {
+        "gatewayTestRuletoken": {
             "Type": "String",
-            "Description": "Github API token with users scope"
-        },
-        "fullmyBucket": {
-            "Type": "String",
-            "Description": "Bucket where to store"
+            "Description": "token"
         }
     },
     "Resources": {
-        "full": {
+        "gatewayTestRule": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
                 "Code": {
@@ -63,31 +59,31 @@
                 "Description": {
                     "Ref": "AWS::StackName"
                 },
-                "Handler": "index.full",
+                "Handler": "index.gatewayTestRule",
                 "Runtime": "nodejs",
                 "Timeout": 60,
                 "MemorySize": 128
             },
             "Metadata": {
-                "sourcePath": "rules/myRule.js"
+                "sourcePath": "test/rules/gatewayTestRule.js"
             }
         },
-        "fullPermission": {
+        "gatewayTestRulePermission": {
             "Type": "AWS::Lambda::Permission",
             "Properties": {
                 "FunctionName": {
                     "Fn::GetAtt": [
-                        "full",
+                        "gatewayTestRule",
                         "Arn"
                     ]
                 },
                 "Action": "lambda:InvokeFunction",
-                "Principal": "events.amazonaws.com",
+                "Principal": "apigateway.amazonaws.com",
                 "SourceArn": {
                     "Fn::Join": [
                         "",
                         [
-                            "arn:aws:events:",
+                            "arn:aws:execute-api:",
                             {
                                 "Ref": "AWS::Region"
                             },
@@ -95,37 +91,227 @@
                             {
                                 "Ref": "AWS::AccountId"
                             },
-                            ":rule/",
+                            ":",
                             {
-                                "Ref": "AWS::StackName"
+                                "Ref": "ApiGateway"
                             },
-                            "*"
+                            "/*"
                         ]
                     ]
                 }
             }
         },
-        "StreambotEnvfull": {
+        "StreambotEnvgatewayTestRule": {
             "Type": "Custom::StreambotEnv",
             "Properties": {
                 "ServiceToken": {
                     "Ref": "StreambotEnv"
                 },
                 "FunctionName": {
-                    "Ref": "full"
+                    "Ref": "gatewayTestRule"
                 },
-                "fullgithubToken": {
-                    "Ref": "fullgithubToken"
-                },
-                "fullmyBucket": {
-                    "Ref": "fullmyBucket"
+                "gatewayTestRuletoken": {
+                    "Ref": "gatewayTestRuletoken"
                 },
                 "LambdaCfnAlarmSNSTopic": {
                     "Ref": "LambdaCfnAlarmSNSTopic"
                 }
             }
         },
-        "fullAlarmErrors": {
+        "ApiGateway": {
+            "Type": "AWS::ApiGateway::RestApi",
+            "Properties": {
+                "Name": {
+                    "Ref": "AWS::StackName"
+                },
+                "FailOnWarnings": "true"
+            }
+        },
+        "ApiKey": {
+            "Type": "AWS::ApiGateway::ApiKey",
+            "DependsOn": "ApiDeployment",
+            "Properties": {
+                "Name": {
+                    "Ref": "AWS::StackName"
+                },
+                "Enabled": "true",
+                "StageKeys": [
+                    {
+                        "RestApiId": {
+                            "Ref": "ApiGateway"
+                        },
+                        "StageName": "prod"
+                    }
+                ]
+            }
+        },
+        "ApiDeployment": {
+            "Type": "AWS::ApiGateway::Deployment",
+            "DependsOn": [ "gatewayTestRuleGatewayRuleMethod" ],
+            "Properties": {
+                "RestApiId": {
+                    "Ref": "ApiGateway"
+                },
+                "StageName": "prod",
+                "StageDescription": {
+                    "StageName": "prod"
+                }
+            }
+        },
+        "ApiLatencyAlarm": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "4",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#ApiLatencyAlarm",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/ApiGateway",
+                "Dimensions": [
+                    {
+                        "Name": "APIName",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold",
+                "MetricName": "Latency"
+            }
+        },
+        "Api4xxAlarm": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "100",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Api4xxAlarm",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/ApiGateway",
+                "Dimensions": [
+                    {
+                        "Name": "APIName",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold",
+                "MetricName": "4xxError"
+            }
+        },
+        "ApiCountAlarm": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "EvaluationPeriods": "5",
+                "Statistic": "Sum",
+                "Threshold": "10000",
+                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#ApiCountAlarm",
+                "Period": "60",
+                "AlarmActions": [
+                    {
+                        "Ref": "LambdaCfnAlarmSNSTopic"
+                    }
+                ],
+                "Namespace": "AWS/ApiGateway",
+                "Dimensions": [
+                    {
+                        "Name": "APIName",
+                        "Value": {
+                            "Ref": "AWS::StackName"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold",
+                "MetricName": "Count"
+            }
+        },
+        "gatewayTestRuleGatewayRuleResource": {
+            "Type": "AWS::ApiGateway::Resource",
+            "Properties": {
+                "ParentId": {
+                    "Fn::GetAtt": [
+                        "ApiGateway",
+                        "RootResourceId"
+                    ]
+                },
+                "RestApiId": {
+                    "Ref": "ApiGateway"
+                },
+                "PathPart": "gatewaytestrule"
+            }
+        },
+        "gatewayTestRuleGatewayRuleMethod": {
+            "Type": "AWS::ApiGateway::Method",
+            "Properties": {
+                "RestApiId": {
+                    "Ref": "ApiGateway"
+                },
+                "ResourceId": {
+                    "Ref": "gatewayTestRuleGatewayRuleResource"
+                },
+                "AuthorizationType": "None",
+                "HttpMethod": "POST",
+                "MethodResponses": [
+                    {
+                        "StatusCode": "200",
+                        "ResponseModels": {
+                            "application/json": "Empty"
+                        }
+                    },
+                    {
+                        "StatusCode": "500",
+                        "ResponseModels": {
+                            "application/json": "Empty"
+                        }
+                    }
+                ],
+                "Integration": {
+                    "Type": "AWS",
+                    "IntegrationHttpMethod": "POST",
+                    "IntegrationResponses": [
+                        {
+                            "StatusCode": "200"
+                        },
+                        {
+                            "StatusCode": "500",
+                            "SelectionPattern": ".*/Error|Exception/.*"
+                        }
+                    ],
+                    "Uri": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "arn:aws:apigateway:",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ":lambda:path/2015-03-31/functions/",
+                                {
+                                    "Fn::GetAtt": [
+                                        "gatewayTestRule",
+                                        "Arn"
+                                    ]
+                                },
+                                "/invocations"
+                            ]
+                        ]
+                    }
+                },
+                "ApiKeyRequired": "true"
+            }
+        },
+        "gatewayTestRuleAlarmErrors": {
             "Type": "AWS::CloudWatch::Alarm",
             "Properties": {
                 "EvaluationPeriods": "5",
@@ -143,7 +329,7 @@
                     {
                         "Name": "FunctionName",
                         "Value": {
-                            "Ref": "full"
+                            "Ref": "gatewayTestRule"
                         }
                     }
                 ],
@@ -151,7 +337,7 @@
                 "MetricName": "Errors"
             }
         },
-        "fullAlarmNoInvocations": {
+        "gatewayTestRuleAlarmNoInvocations": {
             "Type": "AWS::CloudWatch::Alarm",
             "Properties": {
                 "EvaluationPeriods": "5",
@@ -169,7 +355,7 @@
                     {
                         "Name": "FunctionName",
                         "Value": {
-                            "Ref": "full"
+                            "Ref": "gatewayTestRule"
                         }
                     }
                 ],
@@ -257,20 +443,6 @@
                                 }
                             ]
                         }
-                    },
-                    {
-                        "PolicyName": "full",
-                        "PolicyDocument": {
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "s3:GetObject"
-                                    ],
-                                    "Resource": "arn:aws:s3:::mySuperDuperBucket"
-                                }
-                            ]
-                        }
                     }
                 ]
             }
@@ -293,5 +465,29 @@
         }
     },
     "Outputs": {
+        "APIKey": {
+            "Value": {
+                "Ref": "ApiKey"
+            }
+        },
+        "gatewayTestRuleAPIEndpoint": {
+            "Value": {
+                "Fn::Join": [
+                    "",
+                    [
+                        "https://",
+                        {
+                            "Ref": "ApiGateway"
+                        },
+                        ".execute-api.",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        ".amazonaws.com/prod/",
+                        "gatewaytestrule"
+                    ]
+                ]
+            }
+        }
     }
 }

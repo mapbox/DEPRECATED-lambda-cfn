@@ -1,6 +1,6 @@
 {
   "name": "lambda-cfn",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "description": "CloudFormation boiler plate for lambda functions",
   "main": "lib/lambda-cfn.js",
   "engines": {
@@ -20,9 +20,7 @@
     "streambot": "3.4.0",
     "d3-queue": "^2.0.3",
     "app-root-path": "1.2.0",
-    "aws-sdk": "^2.2.35",
-    "yargs": "^4.6.0",
-    "inquirer": "^1.0.0"
+    "aws-sdk": "^2.2.35"
   },
   "devDependencies": {
     "jscs": "^1.11.3",

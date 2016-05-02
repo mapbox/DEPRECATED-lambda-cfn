@@ -2,7 +2,11 @@
 All notable changes to this project will be documented in this file. For change log formatting, see http://keepachangelog.com/
 
 ## Unreleased
+- none
 
+## 0.1.0 2016-05-02
+- API Gateway rule support 
+  
 ## 0.0.10 2016-04-22
 - Uses newly released CFN support for Cloudwatch Event Rules
 - Update from `queue-async` to `d3-queue`

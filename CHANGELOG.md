@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - none
 
+## 0.1.1 2016-05-05
+- Fixed building roles from statements defined within rules
+- Corrected false non-falsey return values being returned in `getEnv()` and `splitOnComma()`
+
 ## 0.1.0 2016-05-02
 - API Gateway rule support 
   

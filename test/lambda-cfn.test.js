@@ -373,12 +373,10 @@ tape('CloudWatch Event rules unit tests', function(t) {
   eventRes = (cweRules(eventDef,'eventRule'));
   t.equal(eventRes.Type, 'AWS::Events::Rule');
   t.deepLooseEqual(eventRes.Properties.EventPattern, eventPat,'EventPattern found');
-  t.equal(eventRes.Properties.Name["Fn::Join"][1][2],'event','event rule named correctly');
 
   eventDef.scheduledRule = 'rate(5 minutes)';
   eventRes = (cweRules(eventDef,'scheduledRule'));
     t.equal(eventRes.Properties.ScheduleExpression,'rate(5 minutes)','ScheduleExpression found');
-  t.equal(eventRes.Properties.Name["Fn::Join"][1][2],'scheduled','scheduled rule named correctly');
   t.end();
 });
 

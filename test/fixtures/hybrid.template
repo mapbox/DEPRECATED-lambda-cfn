@@ -138,18 +138,6 @@
                         ]
                     }
                 },
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "hybridRule",
-                            "event"
-                        ]
-                    ]
-                },
                 "RoleArn": {
                     "Fn::GetAtt": [
                         "LambdaCfnRole",
@@ -174,18 +162,6 @@
             "Type": "AWS::Events::Rule",
             "Properties": {
                 "ScheduleExpression": "rate(5 minutes)",
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "hybridRule",
-                            "scheduled"
-                        ]
-                    ]
-                },
                 "RoleArn": {
                     "Fn::GetAtt": [
                         "LambdaCfnRole",

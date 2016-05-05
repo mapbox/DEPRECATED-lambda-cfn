@@ -122,18 +122,6 @@
             "Type": "AWS::Events::Rule",
             "Properties": {
                 "ScheduleExpression": "rate(5 minutes)",
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "scheduledRule",
-                            "scheduled"
-                        ]
-                    ]
-                },
                 "RoleArn": {
                     "Fn::GetAtt": [
                         "LambdaCfnRole",

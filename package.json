@@ -1,6 +1,6 @@
 {
   "name": "lambda-cfn",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "CloudFormation boiler plate for lambda functions",
   "main": "lib/lambda-cfn.js",
   "engines": {

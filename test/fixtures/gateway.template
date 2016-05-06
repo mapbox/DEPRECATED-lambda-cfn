@@ -285,7 +285,7 @@
                         },
                         {
                             "StatusCode": "500",
-                            "SelectionPattern": ".*/Error|Exception/.*"
+                            "SelectionPattern": "^(?i)(error|exception).*"
                         }
                     ],
                     "Uri": {

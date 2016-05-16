@@ -183,7 +183,7 @@ Method response:
 ## Rule functions
 - `lambda-cfn` binds the function to the Lambda function's `index.RULE_NAME` handler.
 - Event payloads are passed to the handler unmodified.
-- When creating a rule that is both event and schedule triggered, the function should first detect the Cloudwatch Event object type (`eventRule` or `scheduledRule`), and act accordingly as schedule and filter event payloads are different.
+- When creating a rule that is both event and schedule triggered, the function should first detect the Cloudwatch Event object type (`eventRule` or `scheduledRule`), and act accordingly as schedule and filter event payloads are different. [AWS Lambda Event Sources](http://docs.aws.amazon.com/lambda/latest/dg/eventsources.html) details the formats.
 - All Lambda functions are wrapped by [`streambot`](http://github.com/mapbox/streambot), and the callback uses the familiar node.js style format of `(err,result)`.
 - The AWS Lambda `context` is bound to the Streambot'ed function as per [pull request #36](https://github.com/mapbox/streambot/pull/36) on streambot.
 

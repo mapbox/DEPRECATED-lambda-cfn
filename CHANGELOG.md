@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - none
 
+## 0.1.4 2016-06-06
+- Randomized API deployment name so methods are redeployed on every update.
+
+## 0.1.3 2016-05-06
+- Fixed API GW method response error mapping
+
 ## 0.1.1 2016-05-05
 - Fixed building roles from statements defined within rules
 - Corrected false non-falsey return values being returned in `getEnv()` and `splitOnComma()`

@@ -192,18 +192,7 @@ tape('Compile ApiGateway based rule', function(t) {
 
   var gatewayBuilt = lambdaCfn.compile([lambdaCfn.build(gatewayConfig)], {});
   var gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template'),"utf8"));
-  for (var output in gatewayBuilt.Outputs) {
-    t.deepLooseEqual(gatewayBuilt.Outputs[output],gatewayFixture.Outputs[output]);
-  }
-  for (var param in gatewayBuilt.Parameters) {
-    t.deepLooseEqual(gatewayBuilt.Parameters[param],gatewayFixture.Parameters[param]);
-  }
-  for (var resource in gatewayBuilt.Resources) {
-    if (resource.match(/ApiDeployment/)) {
-      t.deepLooseEqual(gatewayBuilt.Resources[resource],gatewayFixture.Resources.ApiDeployment);
-    } else {
-      t.deepLooseEqual(gatewayBuilt.Resources[resource],gatewayFixture.Resources[resource]);
-    }
-  }
+
+  t.deepLooseEqual(gatewayBuilt,gatewayFixture, 'Gateway rule build is equal to fixture');
   t.end();
 });

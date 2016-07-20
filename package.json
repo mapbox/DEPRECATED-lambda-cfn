@@ -4,7 +4,7 @@
   "description": "CloudFormation boiler plate for lambda functions",
   "main": "lib/lambda-cfn.js",
   "engines": {
-    "node": "4.3.2"
+    "node": "4.4.3"
   },
   "repository": {
     "type": "git",

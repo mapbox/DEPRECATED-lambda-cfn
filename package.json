@@ -17,7 +17,7 @@
     "lambda-cfn-template": "./bin/lambda-cfn-template.js"
   },
   "dependencies": {
-    "streambot": "3.4.0",
+    "streambot": "mapbox/streambot#debug-service",
     "d3-queue": "^2.0.3",
     "app-root-path": "1.2.0",
     "aws-sdk": "^2.2.35"

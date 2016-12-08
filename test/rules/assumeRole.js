@@ -4,6 +4,7 @@ var splitOnComma = require('../../').splitOnComma;
 module.exports.config = {
   name: 'assumeRole',
   sourcePath: 'rules/assumeRole.js',
+  runtime: 'nodejs',
   parameters: {
     'blacklistedRoles': {
       'Type': 'String',

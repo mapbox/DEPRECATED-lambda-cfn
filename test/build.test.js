@@ -12,6 +12,7 @@ tape('Compile unit tests', function(t) {
 
   var simpleBuilt = lambdaCfn.compile([lambdaCfn.build({
     name: 'simple',
+    runtime: 'nodejs4.3',
     sourcePath: 'rules/myRule.js'
   })], {});
 
@@ -21,6 +22,7 @@ tape('Compile unit tests', function(t) {
 
   var fullConfig = {
     name: 'full',
+    runtime: 'nodejs4.3',
     sourcePath: 'rules/myRule.js',
     parameters: {
       'githubToken': {
@@ -55,6 +57,7 @@ tape('Compile unit tests', function(t) {
 tape('Compile SNS rule', function(t) {
   var snsConfig = {
     name: 'sns',
+    runtime: 'nodejs',
     sourcePath: 'rules/sns.js',
     parameters: {
       'token': {
@@ -68,6 +71,8 @@ tape('Compile SNS rule', function(t) {
   var snsBuilt = lambdaCfn.compile([lambdaCfn.build(snsConfig)], {});
   var snsFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/sns.template'), "utf8"));
 
+  console.log(snsBuilt);
+
   t.deepEqual(snsBuilt,snsFixture, 'SNS rule build is equal to fixture');
 
   t.end();
@@ -77,6 +82,7 @@ tape('Compile SNS rule', function(t) {
 tape('Compile Event rule', function(t) {
   var eventConfig = {
     name: 'eventRule',
+    runtime: 'nodejs4.3',
     sourcePath: 'rules/eventRule.js',
     parameters: {
       'token': {
@@ -116,6 +122,7 @@ tape('Compile Event rule', function(t) {
 tape('Compile Scheduled rule', function(t) {
   var scheduledConfig = {
     name: 'scheduledRule',
+    runtime: 'nodejs',
     sourcePath: 'rules/scheduledRule.js',
     parameters: {
       'token': {
@@ -138,6 +145,7 @@ tape('Compile Scheduled rule', function(t) {
 tape('Compile Hybrid Scheduled and Hybrid based rule', function(t) {
   var hybridConfig = {
     name: 'hybridRule',
+    runtime: 'nodejs4.3',
     sourcePath: 'rules/hybridRule.js',
     parameters: {
       'token': {
@@ -177,6 +185,7 @@ tape('Compile Hybrid Scheduled and Hybrid based rule', function(t) {
 tape('Compile ApiGateway based rule', function(t) {
   var gatewayConfig = {
     name: 'gatewayTestRule',
+    runtime: 'nodejs',
     sourcePath: 'test/rules/gatewayTestRule.js',
     parameters: {
       'token': {

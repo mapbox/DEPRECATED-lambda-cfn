@@ -5,7 +5,6 @@ var parameters = lambdaCfn.parameters;
 var lambda = lambdaCfn.lambda;
 var lambdaPermission = lambdaCfn.lambdaPermission;
 var policy = lambdaCfn.policy;
-var streambotEnv = lambdaCfn.streambotEnv;
 var cloudwatch = lambdaCfn.cloudwatch;
 var splitOnComma = lambdaCfn.splitOnComma;
 var lambdaSnsTopic = lambdaCfn.lambdaSnsTopic;
@@ -215,76 +214,6 @@ tape('policy unit tests', function(t) {
 
   t.end();
 
-});
-
-tape('streambotEnv unit tests', function(t) {
-  t.throws(
-    function() {
-      streambotEnv({});
-    }, /name property required for streambotEnv/,
-      'Fail in streambotEnv when no name property'
-
-  );
-
-  var onlyGlobalStreambotEnv;
-
-  t.doesNotThrow(
-    function() {
-      onlyGlobalStreambotEnv = streambotEnv({name: 'myFunction'});
-    }, null, 'Does not throw if no parameters');
-
-  t.deepEqual(onlyGlobalStreambotEnv, {
-      "Type": "Custom::StreambotEnv",
-      "Properties": {
-        "ServiceToken": {
-          "Ref": "StreambotEnv"
-        },
-        "FunctionName": {
-          "Ref": "myFunction"
-        },
-        "LambdaCfnAlarmSNSTopic": {
-          "Ref": "LambdaCfnAlarmSNSTopic"
-        }
-      }
-    }, 'Only global streambotEnv if no parameters');
-
-  var validStreambotEnv = streambotEnv({
-    name: 'myFunction',
-    parameters: {
-      param1: {
-        Type: 'String',
-        Description: 'desc 1'
-      },
-      param2: {
-        Type: 'String',
-        Description: 'desc 2'
-      }
-    }
-  });
-
-  t.deepEqual(validStreambotEnv, {
-      "Type": "Custom::StreambotEnv",
-      "Properties": {
-        "ServiceToken": {
-          "Ref": "StreambotEnv"
-        },
-        "FunctionName": {
-          "Ref": "myFunction"
-        },
-        "myFunctionparam1": {
-          "Ref": "myFunctionparam1"
-        },
-        "myFunctionparam2": {
-          "Ref": "myFunctionparam2"
-        },
-        "LambdaCfnAlarmSNSTopic": {
-          "Ref": "LambdaCfnAlarmSNSTopic"
-        }
-      }
-    }
-  );
-
-  t.end();
 });
 
 tape('cloudwatch unit tests', function(t) {

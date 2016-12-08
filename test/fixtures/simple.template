@@ -14,10 +14,6 @@
             "Type": "String",
             "Description": "lambda function S3 prefix location"
         },
-        "StreambotEnv": {
-            "Type": "String",
-            "Description": "StreambotEnv lambda function ARN"
-        },
         "AlarmEmail": {
             "Type": "String",
             "Description": "Alarm notifications will send to this email address"
@@ -58,7 +54,24 @@
                 "Handler": "index.simple",
                 "Runtime": "nodejs",
                 "Timeout": 60,
-                "MemorySize": 128
+                "MemorySize": 128,
+                "Environment": {
+                    "Variables": {
+                        "LambdaCfnAlarmSNSTopic": true,
+                        "StackName": {
+                            "Ref": "AWS::StackName"
+                        },
+                        "Region": {
+                            "Ref": "AWS::Region"
+                        },
+                        "AccountName": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "StackId": {
+                            "Ref": "AWS::StackId"
+                        }
+                    }
+                }
             },
             "Metadata": {
                 "sourcePath": "rules/myRule.js"
@@ -94,20 +107,6 @@
                             "*"
                         ]
                     ]
-                }
-            }
-        },
-        "StreambotEnvsimple": {
-            "Type": "Custom::StreambotEnv",
-            "Properties": {
-                "ServiceToken": {
-                    "Ref": "StreambotEnv"
-                },
-                "FunctionName": {
-                    "Ref": "simple"
-                },
-                "LambdaCfnAlarmSNSTopic": {
-                    "Ref": "LambdaCfnAlarmSNSTopic"
                 }
             }
         },
@@ -206,24 +205,6 @@
                                         "logs:*"
                                     ],
                                     "Resource": "arn:aws:logs:*:*:*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "dynamodb:GetItem"
-                                    ],
-                                    "Resource": {
-                                        "Fn::Join": [
-                                            "",
-                                            [
-                                                "arn:aws:dynamodb:us-east-1:",
-                                                {
-                                                    "Ref": "AWS::AccountId"
-                                                },
-                                                ":table/streambot-env*"
-                                            ]
-                                        ]
-                                    }
                                 },
                                 {
                                     "Effect": "Allow",

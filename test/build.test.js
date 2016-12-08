@@ -71,8 +71,6 @@ tape('Compile SNS rule', function(t) {
   var snsBuilt = lambdaCfn.compile([lambdaCfn.build(snsConfig)], {});
   var snsFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/sns.template'), "utf8"));
 
-  console.log(snsBuilt);
-
   t.deepEqual(snsBuilt,snsFixture, 'SNS rule build is equal to fixture');
 
   t.end();

@@ -55,6 +55,26 @@
                 "Description": {
                     "Ref": "AWS::StackName"
                 },
+                "Environment": {
+                    "Variables": {
+                        "eventRuletoken": {
+                            "Ref": "eventRuletoken"
+                        },
+                        "LambdaCfnAlarmSNSTopic": true,
+                        "StackName": {
+                            "Ref": "AWS::StackName"
+                        },
+                        "Region": {
+                            "Ref": "AWS::Region"
+                        },
+                        "AccountName": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "StackId": {
+                            "Ref": "AWS::StackId"
+                        }
+                    }
+                },
                 "Handler": "index.eventRule",
                 "Runtime": "nodejs",
                 "Timeout": 60,

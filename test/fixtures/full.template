@@ -59,18 +59,8 @@
                 "Description": {
                     "Ref": "AWS::StackName"
                 },
-                "Handler": "index.full",
-                "Runtime": "nodejs",
-                "Timeout": 60,
-                "MemorySize": 128,
                 "Environment": {
                     "Variables": {
-                        "ServiceToken": {
-                            "Ref": "StreambotEnv"
-                        },
-                        "FunctionName": {
-                            "Ref": "full"
-                        },
                         "fullgithubToken": {
                             "Ref": "fullgithubToken"
                         },
@@ -91,7 +81,11 @@
                             "Ref": "AWS::StackId"
                         }
                     }
-                }
+                },
+                "Handler": "index.full",
+                "Runtime": "nodejs",
+                "Timeout": 60,
+                "MemorySize": 128
             },
             "Metadata": {
                 "sourcePath": "rules/myRule.js"

@@ -2,6 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var tape = require('tape');
 var lambdaCfn = require('../lib/lambda-cfn');
+const util = require('util');
+
 
 tape('Compile unit tests', function(t) {
 
@@ -48,7 +50,14 @@ tape('Compile unit tests', function(t) {
   var fullBuilt = lambdaCfn.compile([lambdaCfn.build(fullConfig)], {});
   var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template'), "utf8"));
 
-  t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
+    console.log("Fixture-------------------");
+    console.log(util.inspect(fullFixture, false, null));
+    console.log("Fixture-------------------");
+    console.log("Built-------------------");
+    console.log(util.inspect(fullBuilt, false, null));
+    console.log("Built-------------------");
+
+    t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
 
   t.end();
 

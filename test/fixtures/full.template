@@ -14,10 +14,6 @@
             "Type": "String",
             "Description": "lambda function S3 prefix location"
         },
-        "StreambotEnv": {
-            "Type": "String",
-            "Description": "StreambotEnv lambda function ARN"
-        },
         "AlarmEmail": {
             "Type": "String",
             "Description": "Alarm notifications will send to this email address"
@@ -66,7 +62,36 @@
                 "Handler": "index.full",
                 "Runtime": "nodejs4.3",
                 "Timeout": 60,
-                "MemorySize": 128
+                "MemorySize": 128,
+                "Environment": {
+                    "Variables": {
+                        "ServiceToken": {
+                            "Ref": "StreambotEnv"
+                        },
+                        "FunctionName": {
+                            "Ref": "full"
+                        },
+                        "fullgithubToken": {
+                            "Ref": "fullgithubToken"
+                        },
+                        "fullmyBucket": {
+                            "Ref": "fullmyBucket"
+                        },
+                        "LambdaCfnAlarmSNSTopic": true,
+                        "StackName": {
+                            "Ref": "AWS::StackName"
+                        },
+                        "Region": {
+                            "Ref": "AWS::Region"
+                        },
+                        "AccountName": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "StackId": {
+                            "Ref": "AWS::StackId"
+                        }
+                    }
+                }
             },
             "Metadata": {
                 "sourcePath": "rules/myRule.js"
@@ -102,26 +127,6 @@
                             "*"
                         ]
                     ]
-                }
-            }
-        },
-        "StreambotEnvfull": {
-            "Type": "Custom::StreambotEnv",
-            "Properties": {
-                "ServiceToken": {
-                    "Ref": "StreambotEnv"
-                },
-                "FunctionName": {
-                    "Ref": "full"
-                },
-                "fullgithubToken": {
-                    "Ref": "fullgithubToken"
-                },
-                "fullmyBucket": {
-                    "Ref": "fullmyBucket"
-                },
-                "LambdaCfnAlarmSNSTopic": {
-                    "Ref": "LambdaCfnAlarmSNSTopic"
                 }
             }
         },
@@ -220,24 +225,6 @@
                                         "logs:*"
                                     ],
                                     "Resource": "arn:aws:logs:*:*:*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "dynamodb:GetItem"
-                                    ],
-                                    "Resource": {
-                                        "Fn::Join": [
-                                            "",
-                                            [
-                                                "arn:aws:dynamodb:us-east-1:",
-                                                {
-                                                    "Ref": "AWS::AccountId"
-                                                },
-                                                ":table/streambot-env*"
-                                            ]
-                                        ]
-                                    }
                                 },
                                 {
                                     "Effect": "Allow",

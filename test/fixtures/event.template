@@ -60,7 +60,9 @@
                         "eventRuletoken": {
                             "Ref": "eventRuletoken"
                         },
-                        "LambdaCfnAlarmSNSTopic": true,
+                        "LambdaCfnAlarmSNSTopic": {
+                            "Ref": "LambdaCfnAlarmSNSTopic"
+                        },
                         "StackName": {
                             "Ref": "AWS::StackName"
                         },

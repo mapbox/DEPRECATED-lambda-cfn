@@ -60,7 +60,9 @@
             "gatewayTestRuletoken": {
               "Ref": "gatewayTestRuletoken"
             },
-            "LambdaCfnAlarmSNSTopic": true,
+            "LambdaCfnAlarmSNSTopic": {
+              "Ref": "LambdaCfnAlarmSNSTopic"
+            },
             "StackName": {
               "Ref": "AWS::StackName"
             },

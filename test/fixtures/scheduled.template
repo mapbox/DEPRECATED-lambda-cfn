@@ -60,7 +60,9 @@
                         "scheduledRuletoken": {
                             "Ref": "scheduledRuletoken"
                         },
-                        "LambdaCfnAlarmSNSTopic": true,
+                        "LambdaCfnAlarmSNSTopic": {
+                            "Ref": "LambdaCfnAlarmSNSTopic"
+                        },
                         "StackName": {
                             "Ref": "AWS::StackName"
                         },

@@ -67,7 +67,9 @@
                         "fullmyBucket": {
                             "Ref": "fullmyBucket"
                         },
-                        "LambdaCfnAlarmSNSTopic": true,
+                        "LambdaCfnAlarmSNSTopic": {
+                            "Ref": "LambdaCfnAlarmSNSTopic"
+                        },
                         "StackName": {
                             "Ref": "AWS::StackName"
                         },

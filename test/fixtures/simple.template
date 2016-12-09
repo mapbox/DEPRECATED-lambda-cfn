@@ -57,7 +57,9 @@
                 "MemorySize": 128,
                 "Environment": {
                     "Variables": {
-                        "LambdaCfnAlarmSNSTopic": true,
+                        "LambdaCfnAlarmSNSTopic": {
+                            "Ref": "LambdaCfnAlarmSNSTopic"
+                        },
                         "StackName": {
                             "Ref": "AWS::StackName"
                         },

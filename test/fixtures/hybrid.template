@@ -60,7 +60,9 @@
                         "hybridRuletoken": {
                             "Ref": "hybridRuletoken"
                         },
-                        "LambdaCfnAlarmSNSTopic": true,
+                        "LambdaCfnAlarmSNSTopic": {
+                            "Ref": "LambdaCfnAlarmSNSTopic"
+                        },
                         "StackName": {
                             "Ref": "AWS::StackName"
                         },

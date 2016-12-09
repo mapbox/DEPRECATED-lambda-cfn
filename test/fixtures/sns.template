@@ -276,24 +276,6 @@
                                 {
                                     "Effect": "Allow",
                                     "Action": [
-                                        "dynamodb:GetItem"
-                                    ],
-                                    "Resource": {
-                                        "Fn::Join": [
-                                            "",
-                                            [
-                                                "arn:aws:dynamodb:us-east-1:",
-                                                {
-                                                    "Ref": "AWS::AccountId"
-                                                },
-                                                ":table/streambot-env*"
-                                            ]
-                                        ]
-                                    }
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
                                         "sns:Publish"
                                     ],
                                     "Resource": {

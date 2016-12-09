@@ -65,12 +65,6 @@
                 "MemorySize": 128,
                 "Environment": {
                     "Variables": {
-                        "ServiceToken": {
-                            "Ref": "StreambotEnv"
-                        },
-                        "FunctionName": {
-                            "Ref": "full"
-                        },
                         "fullgithubToken": {
                             "Ref": "fullgithubToken"
                         },

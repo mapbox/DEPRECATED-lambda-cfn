@@ -55,6 +55,26 @@
                 "Description": {
                     "Ref": "AWS::StackName"
                 },
+                "Environment": {
+                    "Variables": {
+                        "hybridRuletoken": {
+                            "Ref": "hybridRuletoken"
+                        },
+                        "LambdaCfnAlarmSNSTopic": true,
+                        "StackName": {
+                            "Ref": "AWS::StackName"
+                        },
+                        "Region": {
+                            "Ref": "AWS::Region"
+                        },
+                        "AccountName": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "StackId": {
+                            "Ref": "AWS::StackId"
+                        }
+                    }
+                },
                 "Handler": "index.hybridRule",
                 "Runtime": "nodejs4.3",
                 "Timeout": 60,

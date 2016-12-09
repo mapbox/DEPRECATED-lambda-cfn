@@ -1,48 +1,48 @@
 {
   "bin": {
     "lambda-cfn-template": "./bin/lambda-cfn-template.js"
-  }, 
-  "license": "BSD-2-Clause", 
+  },
+  "license": "BSD-2-Clause",
   "engines": {
     "node": "0.10.36 || 4.3.2"
-  }, 
-  "name": "lambda-cfn", 
+  },
+  "name": "lambda-cfn",
   "repository": {
-    "url": "https://github.com/mapbox/lambda-cfn.git", 
+    "url": "https://github.com/mapbox/lambda-cfn.git",
     "type": "git"
-  }, 
-  "author": "Mapbox, Inc.", 
-  "homepage": "https://github.com/mapbox/lambda-cfn", 
+  },
+  "author": "Mapbox, Inc.",
+  "homepage": "https://github.com/mapbox/lambda-cfn",
   "bugs": {
     "url": "https://github.com/mapbox/lambda-cfn/issues"
-  }, 
+  },
   "jscsConfig": {
-    "preset": "airbnb", 
+    "preset": "airbnb",
     "requireCamelCaseOrUpperCaseIdentifiers": null
-  }, 
-  "version": "0.1.5", 
+  },
+  "version": "0.1.5",
   "dependencies": {
-    "aws-sdk": "^2.2.35", 
-    "app-root-path": "1.2.0", 
-    "d3-queue": "^2.0.3", 
+    "aws-sdk": "^2.2.35",
+    "app-root-path": "1.2.0",
+    "d3-queue": "^2.0.3",
     "streambot": "3.4.0"
-  }, 
+  },
   "scripts": {
     "test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
-  }, 
+  },
   "devDependencies": {
-    "tape": "^4.5.1", 
-    "jscs": "^1.11.3", 
-    "jshint": "^2.6.3", 
+    "tape": "^4.5.1",
+    "jscs": "^1.11.3",
+    "jshint": "^2.6.3",
     "nock": "^7.7.2"
-  }, 
-  "main": "lib/lambda-cfn.js", 
+  },
+  "main": "lib/lambda-cfn.js",
   "jshintConfig": {
-    "node": true, 
-    "unused": true, 
-    "globalstrict": false, 
-    "undef": true, 
+    "node": true,
+    "unused": true,
+    "globalstrict": false,
+    "undef": true,
     "noarg": true
-  }, 
+  },
   "description": "CloudFormation boiler plate for lambda functions"
 }

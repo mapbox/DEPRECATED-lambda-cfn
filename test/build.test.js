@@ -2,7 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var tape = require('tape');
 var lambdaCfn = require('../lib/lambda-cfn');
-const util = require('util');
+var util = require('util');
 
 
 tape('Compile unit tests', function(t) {

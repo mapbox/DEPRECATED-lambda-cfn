@@ -502,7 +502,7 @@ tape('envVariableParser unit tests', function(t) {
             "StackId": {"Ref": "AWS::StackId"},
             "StackName": {"Ref": "AWS::StackName"}
         },
-        'Only global streambotEnv if no parameters');
+        'Only global env variables if no parameters');
 
     var validEnvVariables = envVariableParser({
         name: 'myFunction',
@@ -528,7 +528,7 @@ tape('envVariableParser unit tests', function(t) {
             "StackId": {"Ref": "AWS::StackId"},
             "StackName": {"Ref": "AWS::StackName"}
         },
-        'Only global streambotEnv if no parameters');
+        'Global plus function env variables set');
 
     t.end();
 });

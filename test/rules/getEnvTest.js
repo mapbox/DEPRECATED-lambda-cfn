@@ -5,6 +5,7 @@ var getEnv = require(process.cwd()).getEnv;
 module.exports.config = {
   name: 'getEnvTest',
   sourcePath: 'rules/getEnvTest.js',
+  runtime: 'nodejs4.3',
   parameters: {
     'testParameter1': {
       'Type': 'String',

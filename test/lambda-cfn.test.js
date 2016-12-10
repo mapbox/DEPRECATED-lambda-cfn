@@ -63,6 +63,18 @@ tape('lambda unit tests', function(t) {
   t.equal(def.Properties.Timeout, 60, 'Lambda timeout safe default');
   def = lambda({name: 'myHandler', memorySize: 1111, timeout: 600});
   t.equal(def.Properties.MemorySize, 128, 'Lambda memory size mod 64 safe default');
+  def = lambda({name: 'myHandler', runtime: 'nodejs'});
+  t.equal(def.Properties.Runtime, 'nodejs', 'Created Node 0.10 runtime Lambda');
+  def = lambda({name: 'myHandler', runtime: 'nodejs4.3'});
+  t.equal(def.Properties.Runtime, 'nodejs4.3', 'Created Node 4.3.2 runtime Lambda');
+  def = lambda({name: 'myHandler'});
+  t.equal(def.Properties.Runtime, 'nodejs4.3', 'Default to Node 4.3.2 runtime if not specified');
+
+  t.throws(
+    function() {
+      lambda({name: 'myHandler', runtime: 'foobarbaz'});
+    }, /Invalid AWS Lambda node.js runtime foobarbaz/, 'Fails with invalid runtime'
+  );
 
   t.end();
 

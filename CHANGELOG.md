@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - none
 
+## 0.1.5 2016-12-9
+- Enabled Node 4.3.2 runtime support
+- Allows for configurable runtime - `nodejs` or `nodejs4.3`
+
 ## 0.1.4 2016-06-06
 - Randomized API deployment name so methods are redeployed on every update.
 

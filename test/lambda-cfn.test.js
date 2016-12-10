@@ -67,6 +67,8 @@ tape('lambda unit tests', function(t) {
   t.equal(def.Properties.Runtime, 'nodejs', 'Created Node 0.10 runtime Lambda');
   def = lambda({name: 'myHandler', runtime: 'nodejs4.3'});
   t.equal(def.Properties.Runtime, 'nodejs4.3', 'Created Node 4.3.2 runtime Lambda');
+  def = lambda({name: 'myHandler'});
+  t.equal(def.Properties.Runtime, 'nodejs4.3', 'Default to Node 4.3.2 runtime if not specified');
 
   t.throws(
     function() {

@@ -1,5 +1,5 @@
 {
-  "name": "lambda-cfn",
+  "name": "@mapbox/lambda-cfn",
   "version": "0.1.5",
   "description": "CloudFormation boiler plate for lambda functions",
   "main": "lib/lambda-cfn.js",

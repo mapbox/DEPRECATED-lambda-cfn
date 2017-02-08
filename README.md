@@ -25,11 +25,11 @@ module.exports = lambdaCfn(
 where in `myHandler.js` you've exported:
 
 - module.exports.fn - a function which is wrapped by [streambot](git@github.com:mapbox/streambot.git) and which will get called by Lambda.  Steambot is used for [runtime configuration](https://github.com/mapbox/streambot#runtime-configuration) which is able to be defined in module.exports.config
-- module.exports.config - allows you to define some configuration for your Lambda function.  See the [rules spec](https://github.com/mapbox/lambda-cfn/blob/readme/RULE-SPEC.md) for all options.
+- module.exports.config - allows you to define some configuration for your Lambda function.  See the [rules spec](RULE-SPEC.md) for all options.
 
 After uploading a zip of your project to a location in Lambda, you can then deploy this javascript CloudFormation template with [cfn-config](https://github.com/mapbox/cfn-config#usage-1) to deploy your function.
 
-See the [patrol](https://github.com/mapbox/patrol) README for more examples and the [rules spec](https://github.com/mapbox/lambda-cfn/blob/master/RULE-SPEC.md) for a complete reference.
+See the [patrol](https://github.com/mapbox/patrol) README for more examples and the [rules spec](RULE-SPEC.md) for a complete reference.
 
 ## Why
 
@@ -44,7 +44,7 @@ lambda-cfn provides for a simplified interface for defining all of the above, an
 
 Instead of directly writing a CloudFormation template, cfn-config is able to read a javascript file, and, if that javascript file implements lambda-cfn, cfn-config + lambda-cfn turn that file into a valid CloudFormation template.
 
-lambda-cfn adheres to a [rules spec](https://github.com/mapbox/lambda-cfn/blob/master/RULE-SPEC.md) in order for a Lambda function, supporting resources, and configuration to be defined in javascript files, which can then be expanded into CloudFormation template JSON.
+lambda-cfn adheres to a [rules spec](RULE-SPEC.md) in order for a Lambda function, supporting resources, and configuration to be defined in javascript files, which can then be expanded into CloudFormation template JSON.
 
 ## Basic use
 

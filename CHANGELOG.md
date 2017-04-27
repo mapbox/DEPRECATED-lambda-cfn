@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - none
 
-## 1.0.0 2016-12-09 
+## 1.0.0 2017-04-27
 - Removed all dependencies on  [streambot](https://github.com/mapbox/streambot)
 - Enabled native environment variables in Lambda
 - Functions given to Lambda-cfn should now use the official [AWS Lambda Programming Model](http://docs.aws.amazon.com/lambda/latest/dg/programming-model.html) for their selected version of Node.
@@ -24,8 +24,8 @@ All notable changes to this project will be documented in this file. For change 
 - Corrected false non-falsey return values being returned in `getEnv()` and `splitOnComma()`
 
 ## 0.1.0 2016-05-02
-- API Gateway rule support 
-  
+- API Gateway rule support
+
 ## 0.0.10 2016-04-22
 - Uses newly released CFN support for Cloudwatch Event Rules
 - Update from `queue-async` to `d3-queue`
@@ -33,10 +33,10 @@ All notable changes to this project will be documented in this file. For change 
 - Rules are namespaced with their repository name
 - Parameters are namespaced with repository name and rule name
 - version incremented for bad v0.0.9 npm release
-  
+
 ## 0.0.9 2016-04-21
 - Not for use, published version is broken
-  
+
 ## 0.0.8 2016-04-08
 
 ### Added
@@ -44,4 +44,3 @@ All notable changes to this project will be documented in this file. For change 
 
 ### Fixed
 - Outputs were not being included in final template output
-

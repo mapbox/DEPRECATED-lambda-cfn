@@ -20,7 +20,7 @@
     "preset": "airbnb",
     "requireCamelCaseOrUpperCaseIdentifiers": null
   },
-  "version": "0.1.5",
+  "version": "1.0.0",
   "dependencies": {
     "aws-sdk": "^2.2.35",
     "app-root-path": "1.2.0",

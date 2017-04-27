@@ -2,6 +2,8 @@ var fs = require('fs');
 var path = require('path');
 var tape = require('tape');
 var lambdaCfn = require('../lib/lambda-cfn');
+var util = require('util');
+
 
 tape('Compile unit tests', function(t) {
 
@@ -48,7 +50,7 @@ tape('Compile unit tests', function(t) {
   var fullBuilt = lambdaCfn.compile([lambdaCfn.build(fullConfig)], {});
   var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template'), "utf8"));
 
-  t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
+    t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
 
   t.end();
 
@@ -112,7 +114,7 @@ tape('Compile Event rule', function(t) {
   var eventBuilt = lambdaCfn.compile([lambdaCfn.build(eventConfig)], {});
   var eventFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/event.template'), "utf8"));
 
-  t.deepEqual(eventBuilt,eventFixture, 'Event rule build is equal to fixture');
+    t.deepEqual(eventBuilt,eventFixture, 'Event rule build is equal to fixture');
 
   t.end();
 });

@@ -14,10 +14,6 @@
             "Type": "String",
             "Description": "lambda function S3 prefix location"
         },
-        "StreambotEnv": {
-            "Type": "String",
-            "Description": "StreambotEnv lambda function ARN"
-        },
         "AlarmEmail": {
             "Type": "String",
             "Description": "Alarm notifications will send to this email address"
@@ -59,6 +55,28 @@
                 "Description": {
                     "Ref": "AWS::StackName"
                 },
+                "Environment": {
+                    "Variables": {
+                        "scheduledRuletoken": {
+                            "Ref": "scheduledRuletoken"
+                        },
+                        "LambdaCfnAlarmSNSTopic": {
+                            "Ref": "LambdaCfnAlarmSNSTopic"
+                        },
+                        "StackName": {
+                            "Ref": "AWS::StackName"
+                        },
+                        "Region": {
+                            "Ref": "AWS::Region"
+                        },
+                        "AccountName": {
+                            "Ref": "AWS::AccountId"
+                        },
+                        "StackId": {
+                            "Ref": "AWS::StackId"
+                        }
+                    }
+                },
                 "Handler": "index.scheduledRule",
                 "Runtime": "nodejs",
                 "Timeout": 60,
@@ -98,23 +116,6 @@
                             "*"
                         ]
                     ]
-                }
-            }
-        },
-        "StreambotEnvscheduledRule": {
-            "Type": "Custom::StreambotEnv",
-            "Properties": {
-                "ServiceToken": {
-                    "Ref": "StreambotEnv"
-                },
-                "FunctionName": {
-                    "Ref": "scheduledRule"
-                },
-                "scheduledRuletoken": {
-                    "Ref": "scheduledRuletoken"
-                },
-                "LambdaCfnAlarmSNSTopic": {
-                    "Ref": "LambdaCfnAlarmSNSTopic"
                 }
             }
         },
@@ -237,24 +238,6 @@
                                         "logs:*"
                                     ],
                                     "Resource": "arn:aws:logs:*:*:*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "dynamodb:GetItem"
-                                    ],
-                                    "Resource": {
-                                        "Fn::Join": [
-                                            "",
-                                            [
-                                                "arn:aws:dynamodb:us-east-1:",
-                                                {
-                                                    "Ref": "AWS::AccountId"
-                                                },
-                                                ":table/streambot-env*"
-                                            ]
-                                        ]
-                                    }
                                 },
                                 {
                                     "Effect": "Allow",

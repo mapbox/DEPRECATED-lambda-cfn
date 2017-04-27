@@ -5,7 +5,6 @@ var parameters = lambdaCfn.parameters;
 var lambda = lambdaCfn.lambda;
 var lambdaPermission = lambdaCfn.lambdaPermission;
 var policy = lambdaCfn.policy;
-var streambotEnv = lambdaCfn.streambotEnv;
 var cloudwatch = lambdaCfn.cloudwatch;
 var splitOnComma = lambdaCfn.splitOnComma;
 var lambdaSnsTopic = lambdaCfn.lambdaSnsTopic;
@@ -17,6 +16,8 @@ var apiGateway = lambdaCfn.apiGateway;
 var apiDeployment = lambdaCfn.apiDeployment;
 var apiKey = lambdaCfn.apiKey;
 var gatewayRules = lambdaCfn.gatewayRules;
+var envVariableParser = lambdaCfn.envVariableParser;
+
 
 tape('parameter unit tests', function(t) {
   t.throws(
@@ -215,76 +216,6 @@ tape('policy unit tests', function(t) {
 
   t.end();
 
-});
-
-tape('streambotEnv unit tests', function(t) {
-  t.throws(
-    function() {
-      streambotEnv({});
-    }, /name property required for streambotEnv/,
-      'Fail in streambotEnv when no name property'
-
-  );
-
-  var onlyGlobalStreambotEnv;
-
-  t.doesNotThrow(
-    function() {
-      onlyGlobalStreambotEnv = streambotEnv({name: 'myFunction'});
-    }, null, 'Does not throw if no parameters');
-
-  t.deepEqual(onlyGlobalStreambotEnv, {
-      "Type": "Custom::StreambotEnv",
-      "Properties": {
-        "ServiceToken": {
-          "Ref": "StreambotEnv"
-        },
-        "FunctionName": {
-          "Ref": "myFunction"
-        },
-        "LambdaCfnAlarmSNSTopic": {
-          "Ref": "LambdaCfnAlarmSNSTopic"
-        }
-      }
-    }, 'Only global streambotEnv if no parameters');
-
-  var validStreambotEnv = streambotEnv({
-    name: 'myFunction',
-    parameters: {
-      param1: {
-        Type: 'String',
-        Description: 'desc 1'
-      },
-      param2: {
-        Type: 'String',
-        Description: 'desc 2'
-      }
-    }
-  });
-
-  t.deepEqual(validStreambotEnv, {
-      "Type": "Custom::StreambotEnv",
-      "Properties": {
-        "ServiceToken": {
-          "Ref": "StreambotEnv"
-        },
-        "FunctionName": {
-          "Ref": "myFunction"
-        },
-        "myFunctionparam1": {
-          "Ref": "myFunctionparam1"
-        },
-        "myFunctionparam2": {
-          "Ref": "myFunctionparam2"
-        },
-        "LambdaCfnAlarmSNSTopic": {
-          "Ref": "LambdaCfnAlarmSNSTopic"
-        }
-      }
-    }
-  );
-
-  t.end();
 });
 
 tape('cloudwatch unit tests', function(t) {
@@ -552,4 +483,52 @@ tape('template outputs unit tests', function(t) {
   t.equal(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][4],".amazonaws.com/prod/");
   t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][5],"myhandler");
   t.end();
+});
+
+tape('envVariableParser unit tests', function(t) {
+
+    var onlyGlobalEnvVariables = {};
+
+    t.doesNotThrow(
+        function() {
+            onlyGlobalEnvVariables = envVariableParser({});
+        }, null, 'Does not throw if no parameters');
+
+    t.deepEqual(onlyGlobalEnvVariables,
+        {
+            "AccountName": {"Ref": "AWS::AccountId"},
+            "LambdaCfnAlarmSNSTopic": {"Ref": "LambdaCfnAlarmSNSTopic"},
+            "Region": {"Ref": "AWS::Region"},
+            "StackId": {"Ref": "AWS::StackId"},
+            "StackName": {"Ref": "AWS::StackName"}
+        },
+        'Only global env variables if no parameters');
+
+    var validEnvVariables = envVariableParser({
+        name: 'myFunction',
+        parameters: {
+            param1: {
+                Type: 'String',
+                Description: 'desc 1'
+            },
+            param2: {
+                Type: 'String',
+                Description: 'desc 2'
+            }
+        }
+    });
+
+    t.deepEqual(validEnvVariables,
+        {
+            "myFunctionparam1": {"Ref": "myFunctionparam1"},
+            "myFunctionparam2": {"Ref": "myFunctionparam2"},
+            "AccountName": {"Ref": "AWS::AccountId"},
+            "LambdaCfnAlarmSNSTopic": {"Ref": "LambdaCfnAlarmSNSTopic"},
+            "Region": {"Ref": "AWS::Region"},
+            "StackId": {"Ref": "AWS::StackId"},
+            "StackName": {"Ref": "AWS::StackName"}
+        },
+        'Global plus function env variables set');
+
+    t.end();
 });

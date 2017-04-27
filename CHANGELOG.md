@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - none
 
+## 1.0.0 2016-12-09 
+- Removed all dependencies on  [streambot](https://github.com/mapbox/streambot)
+- Enabled native environment variables in Lambda
+- Functions given to Lambda-cfn should now use the official [AWS Lambda Programming Model](http://docs.aws.amazon.com/lambda/latest/dg/programming-model.html) for their selected version of Node.
+
 ## 0.1.5 2016-12-9
 - Enabled Node 4.3.2 runtime support
 - Allows for configurable runtime - `nodejs` or `nodejs4.3`

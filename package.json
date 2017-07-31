@@ -1,6 +1,7 @@
 {
   "bin": {
-    "lambda-cfn-template": "./bin/lambda-cfn-template.js"
+    "lambda-cfn-template": "./bin/lambda-cfn-template.js",
+    "lambda-cfn-init": "bin/init.js"
   },
   "license": "BSD-2-Clause",
   "engines": {
@@ -22,9 +23,10 @@
   },
   "version": "1.0.0",
   "dependencies": {
-    "aws-sdk": "^2.2.35",
     "app-root-path": "1.2.0",
+    "aws-sdk": "^2.2.35",
     "d3-queue": "^2.0.3",
+    "minimist": "^1.2.0",
     "streambot": "3.4.0"
   },
   "scripts": {

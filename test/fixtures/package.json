@@ -1,0 +1,7 @@
+{
+  "name": "fixtures",
+  "version": "0.0.0",
+  "dependencies": {
+    "@mapbox/lambda-cfn": "^2.0.0"
+  }
+}

@@ -1,56 +1,47 @@
 var fs = require('fs');
 var path = require('path');
 var tape = require('tape');
-var lambdaCfn = require('../lib/lambda-cfn');
-var util = require('util');
+var lambdaCfn = require('../index.js');
 
-
-tape('Compile unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambdaCfn.compile('foo');
-    }, '/must be an array/', 'compile takes array first parameter');
-
-  var simpleBuilt = lambdaCfn.compile([lambdaCfn.build({
-    name: 'simple',
-    runtime: 'nodejs4.3',
-    sourcePath: 'rules/myRule.js'
-  })], {});
-
-  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template'), "utf8"));
-
+tape('Template unit tests', function(t) {
+  var simpleBuilt = lambdaCfn.build({ name: 'simple' });
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/simple.template.json'), JSON.stringify(simpleBuilt, null, 2), 'utf8');
+  }
+  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template.json'), 'utf8'));
   t.deepEqual(simpleBuilt, simpleFixture, 'simple build is equal to fixture');
 
   var fullConfig = {
     name: 'full',
     runtime: 'nodejs4.3',
-    sourcePath: 'rules/myRule.js',
     parameters: {
-      'githubToken': {
-        'Type': 'String',
-        'Description': 'Github API token with users scope',
+      githubToken: {
+        Type: 'String',
+        Description: 'Github API token with users scope'
       },
-      'myBucket': {
-        'Type': 'String',
-        'Description': 'Bucket where to store'
+      myBucket: {
+        Type: 'String',
+        Description: 'Bucket where to store'
       }
     },
     statements: [
       {
-        "Effect": "Allow",
-        "Action": [
-          "s3:GetObject"
+        'Effect': 'Allow',
+        'Action': [
+          's3:GetObject'
         ],
-        "Resource": "arn:aws:s3:::mySuperDuperBucket"
+        'Resource': 'arn:aws:s3:::mySuperDuperBucket'
       }
     ]
   };
 
-  var fullBuilt = lambdaCfn.compile([lambdaCfn.build(fullConfig)], {});
-  var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template'), "utf8"));
+  var fullBuilt = lambdaCfn.build(fullConfig);
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/full.template.json'), JSON.stringify(fullBuilt, null, 2), 'utf8');
+  }
+  var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template.json'), 'utf8'));
 
-    t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
+  t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
 
   t.end();
 
@@ -59,19 +50,22 @@ tape('Compile unit tests', function(t) {
 tape('Compile SNS rule', function(t) {
   var snsConfig = {
     name: 'sns',
-    runtime: 'nodejs',
-    sourcePath: 'rules/sns.js',
     parameters: {
-      'token': {
-        'Type': 'String',
-        'Description': 'token'
+      token: {
+        Type: 'String',
+        Description: 'token'
       }
     },
-    snsRule: {}
+    eventSources: {
+      sns: {}
+    }
   };
 
-  var snsBuilt = lambdaCfn.compile([lambdaCfn.build(snsConfig)], {});
-  var snsFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/sns.template'), "utf8"));
+  var snsBuilt = lambdaCfn.build(snsConfig);
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/sns.template.json'), JSON.stringify(snsBuilt, null, 2), 'utf8');
+  }
+  var snsFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/sns.template.json'), 'utf8'));
 
   t.deepEqual(snsBuilt,snsFixture, 'SNS rule build is equal to fixture');
 
@@ -79,62 +73,72 @@ tape('Compile SNS rule', function(t) {
 });
 
 
-tape('Compile Event rule', function(t) {
+tape('Compile Cloudwatch Event', function(t) {
   var eventConfig = {
-    name: 'eventRule',
+    name: 'event',
     runtime: 'nodejs4.3',
-    sourcePath: 'rules/eventRule.js',
     parameters: {
-      'token': {
-        'Type': 'String',
-        'Description': 'token'
+      token: {
+        Type: 'String',
+        Description: 'token'
       }
     },
-    eventRule: {
-      eventPattern:{
-        'detail-type': [
-          'AWS API Call via CloudTrail'
-        ],
-        detail: {
-          eventSource: [
-            'iam.amazonaws.com'
+    eventSources: {
+      cloudwatchEvent: {
+        eventPattern:{
+          'detail-type': [
+            'AWS API Call via CloudTrail'
           ],
-          eventName: [
-            'CreatePolicy',
-            'CreatePolicyVersion',
-            'PutGroupPolicy',
-            'PutRolePolicy',
-            'PutUserPolicy'
-          ]
+          detail: {
+            eventSource: [
+              'iam.amazonaws.com'
+            ],
+            eventName: [
+              'CreatePolicy',
+              'CreatePolicyVersion',
+              'PutGroupPolicy',
+              'PutRolePolicy',
+              'PutUserPolicy'
+            ]
+          }
         }
       }
     }
   };
 
-  var eventBuilt = lambdaCfn.compile([lambdaCfn.build(eventConfig)], {});
-  var eventFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/event.template'), "utf8"));
+  var eventBuilt = lambdaCfn.build(eventConfig);
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/event.template.json'), JSON.stringify(eventBuilt, null, 2), 'utf8');
+  }
+  var eventFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/event.template.json'), 'utf8'));
 
-    t.deepEqual(eventBuilt,eventFixture, 'Event rule build is equal to fixture');
+  t.deepEqual(eventBuilt,eventFixture, 'Event rule build is equal to fixture');
 
   t.end();
 });
 
-tape('Compile Scheduled rule', function(t) {
+tape('Compile Scheduled function', function(t) {
   var scheduledConfig = {
-    name: 'scheduledRule',
-    runtime: 'nodejs',
-    sourcePath: 'rules/scheduledRule.js',
+    name: 'scheduled',
+    runtime: 'nodejs4.3',
     parameters: {
-      'token': {
-        'Type': 'String',
-        'Description': 'token'
+      token: {
+        Type: 'String',
+        Description: 'token'
       }
     },
-    scheduledRule: 'rate(5 minutes)'
+    eventSources: {
+      schedule: {
+        expression: 'rate(5 minutes)'
+      }
+    }
   };
 
-  var scheduledBuilt = lambdaCfn.compile([lambdaCfn.build(scheduledConfig)], {});
-  var scheduledFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/scheduled.template'), "utf8"));
+  var scheduledBuilt = lambdaCfn.build(scheduledConfig);
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/scheduled.template.json'), JSON.stringify(scheduledBuilt, null, 2), 'utf8');
+  }
+  var scheduledFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/scheduled.template.json'), 'utf8'));
 
   t.deepEqual(scheduledBuilt,scheduledFixture, 'Scheduled rule build is equal to fixture');
 
@@ -142,51 +146,57 @@ tape('Compile Scheduled rule', function(t) {
 });
 
 
-tape('Compile Hybrid Scheduled and Hybrid based rule', function(t) {
+tape('Compile Hybrid Scheduled and Cloudwatch Event function ', function(t) {
   var hybridConfig = {
-    name: 'hybridRule',
+    name: 'hybrid',
     runtime: 'nodejs4.3',
-    sourcePath: 'rules/hybridRule.js',
     parameters: {
-      'token': {
-        'Type': 'String',
-        'Description': 'token'
+      token: {
+        Type: 'String',
+        Description: 'token'
       }
     },
-    eventRule: {
-      eventPattern:{
-        'detail-type': [
-          'AWS API Call via CloudTrail'
-        ],
-        detail: {
-          eventSource: [
-            'iam.amazonaws.com'
+    eventSources: {
+      cloudwatchEvent: {
+        eventPattern:{
+          'detail-type': [
+            'AWS API Call via CloudTrail'
           ],
-          eventName: [
-            'CreatePolicy',
-            'CreatePolicyVersion',
-            'PutGroupPolicy',
-            'PutRolePolicy',
-            'PutUserPolicy'
-          ]
+          detail: {
+            eventSource: [
+              'iam.amazonaws.com'
+            ],
+            eventName: [
+              'CreatePolicy',
+              'CreatePolicyVersion',
+              'PutGroupPolicy',
+              'PutRolePolicy',
+              'PutUserPolicy'
+            ]
+          }
         }
+      },
+      schedule: {
+        expression: 'rate(5 minutes)'
       }
-    },
-    scheduledRule: 'rate(5 minutes)'
+    }
   };
 
-  var hybridBuilt = lambdaCfn.compile([lambdaCfn.build(hybridConfig)], {});
-  var hybridFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/hybrid.template'), "utf8"));
+  var hybridBuilt = lambdaCfn.build(hybridConfig);
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/hybrid.template.json'), JSON.stringify(hybridBuilt, null, 2), 'utf8');
+  }
+  var hybridFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/hybrid.template.json'), 'utf8'));
+
   t.deepLooseEqual(hybridBuilt,hybridFixture, 'Hybrid rule build is equal to fixture');
 
   t.end();
 });
 
-tape('Compile ApiGateway based rule', function(t) {
+tape('Compile Webhook based function', function(t) {
   var gatewayConfig = {
-    name: 'gatewayTestRule',
-    runtime: 'nodejs',
-    sourcePath: 'test/rules/gatewayTestRule.js',
+    name: 'webhook',
+    runtime: 'nodejs4.3',
     parameters: {
       'token': {
         'Type': 'String',
@@ -194,13 +204,16 @@ tape('Compile ApiGateway based rule', function(t) {
       }
     },
     gatewayRule: {
-      method: "POST",
+      method: 'POST',
       apiKey: true
     }
   };
 
-  var gatewayBuilt = lambdaCfn.compile([lambdaCfn.build(gatewayConfig)], {});
-  var gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template'),"utf8"));
+  var gatewayBuilt = lambdaCfn.build(gatewayConfig);
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/gateway.template.json'), JSON.stringify(gatewayBuilt, null, 2), 'utf8');
+  }
+  var gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template.json'),'utf8'));
 
   t.deepLooseEqual(gatewayBuilt,gatewayFixture, 'Gateway rule build is equal to fixture');
   t.end();

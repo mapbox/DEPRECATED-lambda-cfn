@@ -1,12 +1,12 @@
 {
   "bin": {
-    "lambda-cfn-template": "./bin/lambda-cfn-template.js"
+    "lambda-cfn": "./bin/lambda-cfn.js"
   },
   "license": "BSD-2-Clause",
   "engines": {
-    "node": "0.10.36 || 4.3.2"
+    "node": "4.3.2 || 6.10.2"
   },
-  "name": "lambda-cfn",
+  "name": "@mapbox/lambda-cfn",
   "repository": {
     "url": "https://github.com/mapbox/lambda-cfn.git",
     "type": "git"
@@ -16,33 +16,28 @@
   "bugs": {
     "url": "https://github.com/mapbox/lambda-cfn/issues"
   },
-  "jscsConfig": {
-    "preset": "airbnb",
-    "requireCamelCaseOrUpperCaseIdentifiers": null
-  },
   "version": "1.0.0",
   "dependencies": {
     "aws-sdk": "^2.2.35",
-    "app-root-path": "1.2.0",
     "d3-queue": "^2.0.3",
-    "streambot": "3.4.0"
+    "@mapbox/cloudfriend": "^1.0.0",
+    "lodash": "^4.17.4",
+    "minimist": "^1.2.0",
+    "rimraf": "^2.6.1",
+    "git-rev-sync": "^1.9.1",
+    "meow": "^3.7.0",
+    "@mapbox/cfn-config": "^2.7.1"
   },
   "scripts": {
-    "test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
+    "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js",
+    "lint": "eslint -c .eslintrc.js *.js **/*.js",
+    "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
   },
   "devDependencies": {
-    "tape": "^4.5.1",
-    "jscs": "^1.11.3",
-    "jshint": "^2.6.3",
-    "nock": "^7.7.2"
+    "@mapbox/mock-aws-sdk-js": "^0.0.5",
+    "eslint": "^4.4.1",
+    "tape": "^4.5.1"
   },
-  "main": "lib/lambda-cfn.js",
-  "jshintConfig": {
-    "node": true,
-    "unused": true,
-    "globalstrict": false,
-    "undef": true,
-    "noarg": true
-  },
-  "description": "CloudFormation boiler plate for lambda functions"
+  "main": "index.js",
+  "description": "CloudFormation boilerplate for lambda functions"
 }

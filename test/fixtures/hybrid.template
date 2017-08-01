@@ -1,323 +1,416 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "LambdaCfn",
-    "Parameters": {
-        "CodeS3Bucket": {
-            "Type": "String",
-            "Description": "lambda function S3 bucket location"
-        },
-        "CodeS3Prefix": {
-            "Type": "String",
-            "Description": "lambda function S3 prefix location"
-        },
-        "GitSha": {
-            "Type": "String",
-            "Description": "lambda function S3 prefix location"
-        },
-        "AlarmEmail": {
-            "Type": "String",
-            "Description": "Alarm notifications will send to this email address"
-        },
-        "hybridRuletoken": {
-            "Type": "String",
-            "Description": "token"
-        }
+  "Parameters": {
+    "token": {
+      "Type": "String",
+      "Description": "token"
     },
-    "Resources": {
-        "hybridRule": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-                "Code": {
-                    "S3Bucket": {
-                        "Ref": "CodeS3Bucket"
-                    },
-                    "S3Key": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                {
-                                    "Ref": "CodeS3Prefix"
-                                },
-                                {
-                                    "Ref": "GitSha"
-                                },
-                                ".zip"
-                            ]
-                        ]
-                    }
-                },
-                "Role": {
-                    "Fn::GetAtt": [
-                        "LambdaCfnRole",
-                        "Arn"
-                    ]
-                },
-                "Description": {
-                    "Ref": "AWS::StackName"
-                },
-                "Environment": {
-                    "Variables": {
-                        "hybridRuletoken": {
-                            "Ref": "hybridRuletoken"
-                        },
-                        "LambdaCfnAlarmSNSTopic": {
-                            "Ref": "LambdaCfnAlarmSNSTopic"
-                        },
-                        "StackName": {
-                            "Ref": "AWS::StackName"
-                        },
-                        "Region": {
-                            "Ref": "AWS::Region"
-                        },
-                        "AccountName": {
-                            "Ref": "AWS::AccountId"
-                        },
-                        "StackId": {
-                            "Ref": "AWS::StackId"
-                        }
-                    }
-                },
-                "Handler": "index.hybridRule",
-                "Runtime": "nodejs4.3",
-                "Timeout": 60,
-                "MemorySize": 128
-            },
-            "Metadata": {
-                "sourcePath": "rules/hybridRule.js"
-            }
-        },
-        "hybridRulePermission": {
-            "Type": "AWS::Lambda::Permission",
-            "Properties": {
-                "FunctionName": {
-                    "Fn::GetAtt": [
-                        "hybridRule",
-                        "Arn"
-                    ]
-                },
-                "Action": "lambda:InvokeFunction",
-                "Principal": "events.amazonaws.com",
-                "SourceArn": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "arn:aws:events:",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            ":",
-                            {
-                                "Ref": "AWS::AccountId"
-                            },
-                            ":rule/",
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "*"
-                        ]
-                    ]
-                }
-            }
-        },
-        "hybridRuleEventRule": {
-            "Type": "AWS::Events::Rule",
-            "Properties": {
-                "EventPattern": {
-                    "detail-type": [
-                        "AWS API Call via CloudTrail"
-                    ],
-                    "detail": {
-                        "eventSource": [
-                            "iam.amazonaws.com"
-                        ],
-                        "eventName": [
-                            "CreatePolicy",
-                            "CreatePolicyVersion",
-                            "PutGroupPolicy",
-                            "PutRolePolicy",
-                            "PutUserPolicy"
-                        ]
-                    }
-                },
-                "RoleArn": {
-                    "Fn::GetAtt": [
-                        "LambdaCfnRole",
-                        "Arn"
-                    ]
-                },
-                "State": "ENABLED",
-                "Targets": [
-                    {
-                        "Arn": {
-                            "Fn::GetAtt": [
-                                "hybridRule",
-                                "Arn"
-                            ]
-                        },
-                        "Id": "hybridRule"
-                    }
-                ]
-            }
-        },
-        "hybridRuleScheduledRule": {
-            "Type": "AWS::Events::Rule",
-            "Properties": {
-                "ScheduleExpression": "rate(5 minutes)",
-                "RoleArn": {
-                    "Fn::GetAtt": [
-                        "LambdaCfnRole",
-                        "Arn"
-                    ]
-                },
-                "State": "ENABLED",
-                "Targets": [
-                    {
-                        "Arn": {
-                            "Fn::GetAtt": [
-                                "hybridRule",
-                                "Arn"
-                            ]
-                        },
-                        "Id": "hybridRule"
-                    }
-                ]
-            }
-        },
-        "hybridRuleAlarmErrors": {
-            "Type": "AWS::CloudWatch::Alarm",
-            "Properties": {
-                "EvaluationPeriods": "5",
-                "Statistic": "Sum",
-                "Threshold": "0",
-                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
-                "Period": "60",
-                "AlarmActions": [
-                    {
-                        "Ref": "LambdaCfnAlarmSNSTopic"
-                    }
-                ],
-                "Namespace": "AWS/Lambda",
-                "Dimensions": [
-                    {
-                        "Name": "FunctionName",
-                        "Value": {
-                            "Ref": "hybridRule"
-                        }
-                    }
-                ],
-                "ComparisonOperator": "GreaterThanThreshold",
-                "MetricName": "Errors"
-            }
-        },
-        "hybridRuleAlarmNoInvocations": {
-            "Type": "AWS::CloudWatch::Alarm",
-            "Properties": {
-                "EvaluationPeriods": "5",
-                "Statistic": "Sum",
-                "Threshold": "0",
-                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
-                "Period": "60",
-                "AlarmActions": [
-                    {
-                        "Ref": "LambdaCfnAlarmSNSTopic"
-                    }
-                ],
-                "Namespace": "AWS/Lambda",
-                "Dimensions": [
-                    {
-                        "Name": "FunctionName",
-                        "Value": {
-                            "Ref": "hybridRule"
-                        }
-                    }
-                ],
-                "ComparisonOperator": "LessThanThreshold",
-                "MetricName": "Invocations"
-            }
-        },
-        "LambdaCfnRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Statement": [
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "lambda.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        },
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "apigateway.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        },
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "events.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        }
-                    ]
-                },
-                "Path": "/",
-                "Policies": [
-                    {
-                        "PolicyName": "basic",
-                        "PolicyDocument": {
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "logs:*"
-                                    ],
-                                    "Resource": "arn:aws:logs:*:*:*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "sns:Publish"
-                                    ],
-                                    "Resource": {
-                                        "Ref": "LambdaCfnAlarmSNSTopic"
-                                    }
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "iam:SimulateCustomPolicy"
-                                    ],
-                                    "Resource": "*"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        },
-        "LambdaCfnAlarmSNSTopic": {
-            "Type": "AWS::SNS::Topic",
-            "Properties": {
-                "TopicName": {
-                    "Ref": "AWS::StackName"
-                },
-                "Subscription": [
-                    {
-                        "Endpoint": {
-                            "Ref": "AlarmEmail"
-                        },
-                        "Protocol": "email"
-                    }
-                ]
-            }
-        }
+    "CodeS3Bucket": {
+      "Type": "String",
+      "Description": "lambda function S3 bucket location"
     },
-    "Outputs": {
+    "CodeS3Prefix": {
+      "Type": "String",
+      "Description": "lambda function S3 prefix location"
+    },
+    "GitSha": {
+      "Type": "String",
+      "Description": "lambda function S3 prefix location"
+    },
+    "AlarmEmail": {
+      "Type": "String",
+      "Description": "Service alarm notifications will send to this email address"
     }
+  },
+  "Resources": {
+    "hybridRuleAlarmErrors": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "EvaluationPeriods": "5",
+        "Statistic": "Sum",
+        "Threshold": "0",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
+        "Period": "60",
+        "AlarmActions": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
+        },
+        "Namespace": "AWS/Lambda",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "hybridRule"
+            }
+          }
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "MetricName": "Errors"
+      }
+    },
+    "hybridRuleAlarmNoInvocations": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "EvaluationPeriods": "5",
+        "Statistic": "Sum",
+        "Threshold": "0",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
+        "Period": "60",
+        "AlarmActions": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
+        },
+        "Namespace": "AWS/Lambda",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "hybridRule"
+            }
+          }
+        ],
+        "ComparisonOperator": "LessThanThreshold",
+        "MetricName": "Invocations"
+      }
+    },
+    "hybridRule": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeS3Bucket"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "CodeS3Prefix"
+                },
+                {
+                  "Ref": "GitSha"
+                },
+                ".zip"
+              ]
+            ]
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
+          ]
+        },
+        "Description": {
+          "Ref": "AWS::StackName"
+        },
+        "Environment": {
+          "Variables": {
+            "StackName": {
+              "Ref": "AWS::StackName"
+            },
+            "Region": {
+              "Ref": "AWS::Region"
+            },
+            "AccountId": {
+              "Ref": "AWS::AccountId"
+            },
+            "StackId": {
+              "Ref": "AWS::StackId"
+            },
+            "token": {
+              "Ref": "token"
+            },
+            "CodeS3Bucket": {
+              "Ref": "CodeS3Bucket"
+            },
+            "CodeS3Prefix": {
+              "Ref": "CodeS3Prefix"
+            },
+            "GitSha": {
+              "Ref": "GitSha"
+            },
+            "AlarmEmail": {
+              "Ref": "AlarmEmail"
+            }
+          }
+        },
+        "Handler": "function",
+        "Timeout": 60,
+        "MemorySize": 128,
+        "Runtime": "nodejs4.3"
+      }
+    },
+    "LambdaCfnRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            },
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "basic",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:FilterLogEvents",
+                    "logs:GetLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:logs:*:",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "LambdaCfnAlarmSNSTopic"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:SimulateCustomPolicy"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "hybridRuleSchedulePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "hybridRule",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:events:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":rule/",
+              {
+                "Ref": "AWS::StackName"
+              },
+              "*"
+            ]
+          ]
+        }
+      }
+    },
+    "hybridRuleSchedule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
+          ]
+        },
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "hybridRule",
+                "Arn"
+              ]
+            },
+            "Id": "hybridRule"
+          }
+        ],
+        "ScheduleExpression": "rate(5 minutes)"
+      }
+    },
+    "hybridRuleSNSPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "hybridRule",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "hybridRuleSNSTopic"
+        }
+      }
+    },
+    "hybridRuleSNSUser": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "hybridRuleSNSTopicPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Resource": {
+                    "Ref": "hybridRuleSNSTopic"
+                  },
+                  "Action": [
+                    "sns:ListTopics",
+                    "sns:Publish"
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:sns:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":*"
+                      ]
+                    ]
+                  },
+                  "Action": [
+                    "sns:ListTopics"
+                  ],
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "hybridRuleSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "hybridRule"
+            ]
+          ]
+        },
+        "TopicName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "hybridRule"
+            ]
+          ]
+        },
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Fn::GetAtt": [
+                "hybridRule",
+                "Arn"
+              ]
+            },
+            "Protocol": "lambda"
+          }
+        ]
+      }
+    },
+    "hybridRuleSNSUserAccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {
+          "Ref": "hybridRuleSNSUser"
+        }
+      }
+    },
+    "LambdaCfnAlarmSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {
+          "Ref": "AWS::StackName"
+        },
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Ref": "AlarmEmail"
+            },
+            "Protocol": "email"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "hybridRuleSNSTopic": {
+      "Value": {
+        "Ref": "hybridRuleSNSTopic"
+      }
+    },
+    "hybridRuleSNSUserAccessKey": {
+      "Value": {
+        "Ref": "hybridRuleSNSUserAccessKey"
+      }
+    },
+    "hybridRuleSNSUserSecretAccessKey": {
+      "Value": {
+        "Fn::GetAtt": [
+          "hybridRuleSNSUserAccessKey",
+          "SecretAccessKey"
+        ]
+      }
+    }
+  },
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "hybridRule lambda-cfn function"
 }

@@ -1,280 +1,380 @@
 {
-    "AWSTemplateFormatVersion": "2010-09-09",
-    "Description": "LambdaCfn",
-    "Parameters": {
-        "CodeS3Bucket": {
-            "Type": "String",
-            "Description": "lambda function S3 bucket location"
-        },
-        "CodeS3Prefix": {
-            "Type": "String",
-            "Description": "lambda function S3 prefix location"
-        },
-        "GitSha": {
-            "Type": "String",
-            "Description": "lambda function S3 prefix location"
-        },
-        "AlarmEmail": {
-            "Type": "String",
-            "Description": "Alarm notifications will send to this email address"
-        },
-        "fullgithubToken": {
-            "Type": "String",
-            "Description": "Github API token with users scope"
-        },
-        "fullmyBucket": {
-            "Type": "String",
-            "Description": "Bucket where to store"
-        }
+  "Parameters": {
+    "githubToken": {
+      "Type": "String",
+      "Description": "Github API token with users scope"
     },
-    "Resources": {
-        "full": {
-            "Type": "AWS::Lambda::Function",
-            "Properties": {
-                "Code": {
-                    "S3Bucket": {
-                        "Ref": "CodeS3Bucket"
-                    },
-                    "S3Key": {
-                        "Fn::Join": [
-                            "",
-                            [
-                                {
-                                    "Ref": "CodeS3Prefix"
-                                },
-                                {
-                                    "Ref": "GitSha"
-                                },
-                                ".zip"
-                            ]
-                        ]
-                    }
-                },
-                "Role": {
-                    "Fn::GetAtt": [
-                        "LambdaCfnRole",
-                        "Arn"
-                    ]
-                },
-                "Description": {
-                    "Ref": "AWS::StackName"
-                },
-                "Handler": "index.full",
-                "Runtime": "nodejs4.3",
-                "Timeout": 60,
-                "MemorySize": 128,
-                "Environment": {
-                    "Variables": {
-                        "fullgithubToken": {
-                            "Ref": "fullgithubToken"
-                        },
-                        "fullmyBucket": {
-                            "Ref": "fullmyBucket"
-                        },
-                        "LambdaCfnAlarmSNSTopic": {
-                            "Ref": "LambdaCfnAlarmSNSTopic"
-                        },
-                        "StackName": {
-                            "Ref": "AWS::StackName"
-                        },
-                        "Region": {
-                            "Ref": "AWS::Region"
-                        },
-                        "AccountName": {
-                            "Ref": "AWS::AccountId"
-                        },
-                        "StackId": {
-                            "Ref": "AWS::StackId"
-                        }
-                    }
-                }
-            },
-            "Metadata": {
-                "sourcePath": "rules/myRule.js"
-            }
-        },
-        "fullPermission": {
-            "Type": "AWS::Lambda::Permission",
-            "Properties": {
-                "FunctionName": {
-                    "Fn::GetAtt": [
-                        "full",
-                        "Arn"
-                    ]
-                },
-                "Action": "lambda:InvokeFunction",
-                "Principal": "events.amazonaws.com",
-                "SourceArn": {
-                    "Fn::Join": [
-                        "",
-                        [
-                            "arn:aws:events:",
-                            {
-                                "Ref": "AWS::Region"
-                            },
-                            ":",
-                            {
-                                "Ref": "AWS::AccountId"
-                            },
-                            ":rule/",
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "*"
-                        ]
-                    ]
-                }
-            }
-        },
-        "fullAlarmErrors": {
-            "Type": "AWS::CloudWatch::Alarm",
-            "Properties": {
-                "EvaluationPeriods": "5",
-                "Statistic": "Sum",
-                "Threshold": "0",
-                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
-                "Period": "60",
-                "AlarmActions": [
-                    {
-                        "Ref": "LambdaCfnAlarmSNSTopic"
-                    }
-                ],
-                "Namespace": "AWS/Lambda",
-                "Dimensions": [
-                    {
-                        "Name": "FunctionName",
-                        "Value": {
-                            "Ref": "full"
-                        }
-                    }
-                ],
-                "ComparisonOperator": "GreaterThanThreshold",
-                "MetricName": "Errors"
-            }
-        },
-        "fullAlarmNoInvocations": {
-            "Type": "AWS::CloudWatch::Alarm",
-            "Properties": {
-                "EvaluationPeriods": "5",
-                "Statistic": "Sum",
-                "Threshold": "0",
-                "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
-                "Period": "60",
-                "AlarmActions": [
-                    {
-                        "Ref": "LambdaCfnAlarmSNSTopic"
-                    }
-                ],
-                "Namespace": "AWS/Lambda",
-                "Dimensions": [
-                    {
-                        "Name": "FunctionName",
-                        "Value": {
-                            "Ref": "full"
-                        }
-                    }
-                ],
-                "ComparisonOperator": "LessThanThreshold",
-                "MetricName": "Invocations"
-            }
-        },
-        "LambdaCfnRole": {
-            "Type": "AWS::IAM::Role",
-            "Properties": {
-                "AssumeRolePolicyDocument": {
-                    "Statement": [
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "lambda.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        },
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "apigateway.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        },
-                        {
-                            "Sid": "",
-                            "Effect": "Allow",
-                            "Principal": {
-                                "Service": "events.amazonaws.com"
-                            },
-                            "Action": "sts:AssumeRole"
-                        }
-                    ]
-                },
-                "Path": "/",
-                "Policies": [
-                    {
-                        "PolicyName": "basic",
-                        "PolicyDocument": {
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "logs:*"
-                                    ],
-                                    "Resource": "arn:aws:logs:*:*:*"
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "sns:Publish"
-                                    ],
-                                    "Resource": {
-                                        "Ref": "LambdaCfnAlarmSNSTopic"
-                                    }
-                                },
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "iam:SimulateCustomPolicy"
-                                    ],
-                                    "Resource": "*"
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "PolicyName": "full",
-                        "PolicyDocument": {
-                            "Statement": [
-                                {
-                                    "Effect": "Allow",
-                                    "Action": [
-                                        "s3:GetObject"
-                                    ],
-                                    "Resource": "arn:aws:s3:::mySuperDuperBucket"
-                                }
-                            ]
-                        }
-                    }
-                ]
-            }
-        },
-        "LambdaCfnAlarmSNSTopic": {
-            "Type": "AWS::SNS::Topic",
-            "Properties": {
-                "TopicName": {
-                    "Ref": "AWS::StackName"
-                },
-                "Subscription": [
-                    {
-                        "Endpoint": {
-                            "Ref": "AlarmEmail"
-                        },
-                        "Protocol": "email"
-                    }
-                ]
-            }
-        }
+    "myBucket": {
+      "Type": "String",
+      "Description": "Bucket where to store"
     },
-    "Outputs": {
+    "CodeS3Bucket": {
+      "Type": "String",
+      "Description": "lambda function S3 bucket location"
+    },
+    "CodeS3Prefix": {
+      "Type": "String",
+      "Description": "lambda function S3 prefix location"
+    },
+    "GitSha": {
+      "Type": "String",
+      "Description": "lambda function S3 prefix location"
+    },
+    "AlarmEmail": {
+      "Type": "String",
+      "Description": "Service alarm notifications will send to this email address"
     }
+  },
+  "Resources": {
+    "fullAlarmErrors": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "EvaluationPeriods": "5",
+        "Statistic": "Sum",
+        "Threshold": "0",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
+        "Period": "60",
+        "AlarmActions": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
+        },
+        "Namespace": "AWS/Lambda",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "full"
+            }
+          }
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "MetricName": "Errors"
+      }
+    },
+    "fullAlarmNoInvocations": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "EvaluationPeriods": "5",
+        "Statistic": "Sum",
+        "Threshold": "0",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
+        "Period": "60",
+        "AlarmActions": {
+          "Ref": "LambdaCfnAlarmSNSTopic"
+        },
+        "Namespace": "AWS/Lambda",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "full"
+            }
+          }
+        ],
+        "ComparisonOperator": "LessThanThreshold",
+        "MetricName": "Invocations"
+      }
+    },
+    "full": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeS3Bucket"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "CodeS3Prefix"
+                },
+                {
+                  "Ref": "GitSha"
+                },
+                ".zip"
+              ]
+            ]
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
+          ]
+        },
+        "Description": {
+          "Ref": "AWS::StackName"
+        },
+        "Environment": {
+          "Variables": {
+            "StackName": {
+              "Ref": "AWS::StackName"
+            },
+            "Region": {
+              "Ref": "AWS::Region"
+            },
+            "AccountId": {
+              "Ref": "AWS::AccountId"
+            },
+            "StackId": {
+              "Ref": "AWS::StackId"
+            },
+            "githubToken": {
+              "Ref": "githubToken"
+            },
+            "myBucket": {
+              "Ref": "myBucket"
+            },
+            "CodeS3Bucket": {
+              "Ref": "CodeS3Bucket"
+            },
+            "CodeS3Prefix": {
+              "Ref": "CodeS3Prefix"
+            },
+            "GitSha": {
+              "Ref": "GitSha"
+            },
+            "AlarmEmail": {
+              "Ref": "AlarmEmail"
+            }
+          }
+        },
+        "Handler": "function",
+        "Timeout": 60,
+        "MemorySize": 128,
+        "Runtime": "nodejs4.3"
+      }
+    },
+    "LambdaCfnRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            },
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "basic",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:FilterLogEvents",
+                    "logs:GetLogEvents"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:logs:*:",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "LambdaCfnAlarmSNSTopic"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:SimulateCustomPolicy"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "full",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": "arn:aws:s3:::mySuperDuperBucket"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "fullSNSPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "full",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "fullSNSTopic"
+        }
+      }
+    },
+    "fullSNSUser": {
+      "Type": "AWS::IAM::User",
+      "Properties": {
+        "Policies": [
+          {
+            "PolicyName": "fullSNSTopicPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Resource": {
+                    "Ref": "fullSNSTopic"
+                  },
+                  "Action": [
+                    "sns:ListTopics",
+                    "sns:Publish"
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:sns:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":*"
+                      ]
+                    ]
+                  },
+                  "Action": [
+                    "sns:ListTopics"
+                  ],
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "fullSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "full"
+            ]
+          ]
+        },
+        "TopicName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "full"
+            ]
+          ]
+        },
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Fn::GetAtt": [
+                "full",
+                "Arn"
+              ]
+            },
+            "Protocol": "lambda"
+          }
+        ]
+      }
+    },
+    "fullSNSUserAccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {
+          "Ref": "fullSNSUser"
+        }
+      }
+    },
+    "LambdaCfnAlarmSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {
+          "Ref": "AWS::StackName"
+        },
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Ref": "AlarmEmail"
+            },
+            "Protocol": "email"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "fullSNSTopic": {
+      "Value": {
+        "Ref": "fullSNSTopic"
+      }
+    },
+    "fullSNSUserAccessKey": {
+      "Value": {
+        "Ref": "fullSNSUserAccessKey"
+      }
+    },
+    "fullSNSUserSecretAccessKey": {
+      "Value": {
+        "Fn::GetAtt": [
+          "fullSNSUserAccessKey",
+          "SecretAccessKey"
+        ]
+      }
+    }
+  },
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "full lambda-cfn function"
 }

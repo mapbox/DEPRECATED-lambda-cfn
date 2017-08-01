@@ -1,98 +1,65 @@
 var tape = require('tape');
 var lambdaCfn = require('../lib/lambda-cfn');
 
-var parameters = lambdaCfn.parameters;
-var lambda = lambdaCfn.lambda;
-var lambdaPermission = lambdaCfn.lambdaPermission;
-var policy = lambdaCfn.policy;
-var cloudwatch = lambdaCfn.cloudwatch;
-var splitOnComma = lambdaCfn.splitOnComma;
-var lambdaSnsTopic = lambdaCfn.lambdaSnsTopic;
-var lambdaSnsUser = lambdaCfn.lambdaSnsUser;
-var lambdaSnsUserAccessKey = lambdaCfn.lambdaSnsUserAccessKey;
-var outputs = lambdaCfn.outputs;
-var cweRules = lambdaCfn.cweRules;
-var apiGateway = lambdaCfn.apiGateway;
-var apiDeployment = lambdaCfn.apiDeployment;
-var apiKey = lambdaCfn.apiKey;
-var gatewayRules = lambdaCfn.gatewayRules;
-var envVariableParser = lambdaCfn.envVariableParser;
 
-
-tape('parameter unit tests', function(t) {
+tape('buildFunctionTemplate unit tests', function(t) {
   t.throws(
     function() {
-      parameters({parameters: {a: {
-        Description: 'foo'
-      }}});
-    }, /must contain Type property/, 'Fail when parameter lacks Type property'
-
+      lambdaCfn.buildFunctionTemplate(
+        {}
+      );
+    }, /Function name is required/, 'Fail when no function name given'
   );
 
-  t.throws(
-    function() {
-      parameters({parameters: {a: {
-        Type: 'foo'
-      }}});
-    }, /must contain Description property/, 'Fail when parameter lacks Description property'
-
-  );
-  var def = {name: 'invalid_char&^#--In!@Name', parameters:  {a: { Type: 'foo',Description: 'foo'}}};
-  var r  = parameters(def);
-  t.looseEqual(r,{invalidcharInNamea: {Description: 'foo',Type: 'foo'}},'Strips function name and generates namespace');
+  var template = lambdaCfn.buildFunctionTemplate({
+    name: 'test'
+  });
+  t.equal(template.AWSTemplateFormatVersion, '2010-09-09', 'Template format version');
+  t.equal(template.Description, 'test lambda-cfn function', 'Template description');
   t.end();
-
 });
 
 tape('lambda unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
+  var lambda = lambdaCfn.buildLambda;
   var def = lambda({name: 'myHandler'});
-  t.equal(def.Properties.Handler, 'index.myHandler', 'Lambda handler correctly named');
-  t.equal(def.Properties.MemorySize, 128, 'Lambda memory size default correct');
-  t.equal(def.Properties.Timeout, 60, 'Lambda timeout default correct');
+  t.equal(def.Resources.myHandler.Properties.Handler, 'function', 'Lambda handler correctly named');
+  t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda memory size default correct');
+  t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Lambda timeout default correct');
   def = lambda({name: 'myHandler', memorySize: 512, timeout: 300});
-  t.equal(def.Properties.MemorySize, 512, 'Lambda memory size updated');
-  t.equal(def.Properties.Timeout, 300, 'Lambda timeout updated');
+  t.equal(def.Resources.myHandler.Properties.MemorySize, 512, 'Lambda memory size updated');
+  t.equal(def.Resources.myHandler.Properties.Timeout, 300, 'Lambda timeout updated');
+  def = lambda({name: 'myHandler', memorySize: 512, timeout: 111});
+  t.equal(def.Resources.myHandler.Properties.Timeout, 111, 'Lambda custom timeout correct');
+  def = lambda({name: 'myHandler', memorySize: 512, timeout:-5});
+  t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Negative timeout defaulted correctly');
   def = lambda({name: 'myHandler', memorySize: 4096, timeout: 600});
-  t.equal(def.Properties.MemorySize, 128, 'Lambda memory size > 1536 safe default');
-  t.equal(def.Properties.Timeout, 60, 'Lambda timeout safe default');
+  t.equal(def.Resources.myHandler.Properties.MemorySize, 1536, 'Lambda memory size > 1536 safe default');
+  t.equal(def.Resources.myHandler.Properties.Timeout, 300, 'Lambda timeout safe default');
   def = lambda({name: 'myHandler', memorySize: 1111, timeout: 600});
-  t.equal(def.Properties.MemorySize, 128, 'Lambda memory size mod 64 safe default');
-  def = lambda({name: 'myHandler', runtime: 'nodejs'});
-  t.equal(def.Properties.Runtime, 'nodejs', 'Created Node 0.10 runtime Lambda');
-  def = lambda({name: 'myHandler', runtime: 'nodejs4.3'});
-  t.equal(def.Properties.Runtime, 'nodejs4.3', 'Created Node 4.3.2 runtime Lambda');
-  def = lambda({name: 'myHandler'});
-  t.equal(def.Properties.Runtime, 'nodejs4.3', 'Default to Node 4.3.2 runtime if not specified');
-
+  t.equal(def.Resources.myHandler.Properties.MemorySize, 1088, 'Lambda memory size mod 64 safe default');
+  def = lambda({name: 'myHandler', memorySize: 12, timeout: 600});
+  t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda min memory size default');
   t.throws(
     function() {
-      lambda({name: 'myHandler', runtime: 'foobarbaz'});
-    }, /Invalid AWS Lambda node.js runtime foobarbaz/, 'Fails with invalid runtime'
+      lambda({name: 'myHandler', runtime: 'nodejs'});
+    }, /Invalid AWS Lambda node.js runtime/, 'Fail when bad nodejs runtime given'
   );
-
+  def = lambda({name: 'myHandler', runtime: 'nodejs4.3'});
+  t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs4.3', 'Created Node 4.3.2 runtime Lambda');
+  def = lambda({name: 'myHandler'});
+  t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs6.10', 'Default to Node 6.10 runtime if not specified');
   t.end();
 
 });
 
-tape('lambda permission unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaPermission({name: 'myHandler', eventRule: {}});
-  t.equal(def.Properties.FunctionName["Fn::GetAtt"][0], 'myHandler', 'Lambda handler correctly named');
-  t.end();
+tape('buildParameters unit tests', function(t) {
+  var parameters = lambaCfn.buildParameters;
+  var def = parameters({
+    parameters: {
+      param1: 'value1',
+      param2: 'value2'
+    }
+  });
 
 });
 

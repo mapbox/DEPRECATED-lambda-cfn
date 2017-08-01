@@ -37,12 +37,15 @@ function createFunctionFiles() {
     process.chdir(directoryName);
     var files = fs.readdirSync(process.cwd());
     if (files.indexOf('function.js') === -1) {
-      fs.writeFile('function.js', 'function.js file', function(err, file){
+      var functionJsContent = 'var lambdaCfn = require(\'lambda-cfn\'); \n\n'
+        + 'module.exports.fn = function(event, context, callback) { \n'
+        + '// write Lambda function code here \n \n};';
+      fs.writeFile('function.js', functionJsContent, function(err, file){
         if (err) throw err;
         console.log('Created ' + directoryName + '/function.js file')
       });
     }
-    if (files.indexOf('function.js') === -1) {
+    if (files.indexOf('function.template.js') === -1) {
       fs.writeFile('function.template.js', 'function.template.js file', function(err, file){
         if (err) throw err;
         console.log('Created ' + directoryName + '/function.template.js file')

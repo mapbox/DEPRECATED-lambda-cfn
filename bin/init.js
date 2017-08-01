@@ -31,11 +31,13 @@ function checkPackageJson() {
 
 function createFunctionFiles() {
   // TODO - validate name against CloudFormation stack name limitations
+  // Must contain only letters, numbers, dashes and start with an alpha character.
   var directoryName = argv._[2];
   fs.mkdir(directoryName, function(err, response) {
     if (err) throw (err);
     process.chdir(directoryName);
     var files = fs.readdirSync(process.cwd());
+    
     if (files.indexOf('function.js') === -1) {
       var functionJsContent = 'var lambdaCfn = require(\'lambda-cfn\'); \n\n'
         + 'module.exports.fn = function(event, context, callback) { \n'
@@ -45,8 +47,13 @@ function createFunctionFiles() {
         console.log('Created ' + directoryName + '/function.js file')
       });
     }
+
     if (files.indexOf('function.template.js') === -1) {
-      fs.writeFile('function.template.js', 'function.template.js file', function(err, file){
+      var functionTemplateContent = 'var lambdaCfn = require(\'lambda-cfn\'); \n\n'
+        + 'module.exports = lambdaCfn.build({\n'
+        + '  name: \'' + directoryName + '\'\n'
+        + '});';
+      fs.writeFile('function.template.js', functionTemplateContent, function(err, file){
         if (err) throw err;
         console.log('Created ' + directoryName + '/function.template.js file')
       });

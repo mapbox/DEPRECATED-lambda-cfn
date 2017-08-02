@@ -1,7 +1,8 @@
 {
   "bin": {
     "lambda-cfn-template": "./bin/lambda-cfn-template.js",
-    "lambda-cfn-init": ".bin/lambda-cfn-init.js"
+    "lambda-cfn-init": "./bin/lambda-cfn-init.js",
+    "lambda-cfn-deploy": "./bin/lambda-cfn-deploy.js"
   },
   "license": "BSD-2-Clause",
   "engines": {

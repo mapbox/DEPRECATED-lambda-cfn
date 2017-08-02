@@ -229,144 +229,71 @@ tape('API Gateway function unit tests', function(t) {
 
 
 tape('buildSnsEvent unit tests', function(t) {
+  var sns = lambdaCfn.buildSnsEvent;
+  var def = sns({ name: 'test' });
+  t.equal(def.Resources.testSNSPermission.Type,'AWS::Lambda::Permission');
+  t.equal(def.Resources.testSNSPermission.Properties.FunctionName['Fn::GetAtt'][0],'test');
+  t.equal(def.Resources.testSNSPermission.Properties.SourceArn.Ref, 'testSNSTopic');
 
-});
-
-tape('lambdaSnsTopic unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaSnsTopic({name: 'myHandler'});
-  t.equal(def.Type, 'AWS::SNS::Topic', 'Lambda SNS topic type correct');
-  t.ok(def.Properties.TopicName,'TopicName present');
-  t.equal(def.Properties.DisplayName["Fn::Join"][1][1],'myHandler','DisplayName set correctly');
-  t.equal(def.Properties.TopicName["Fn::Join"][1][1],'myHandler','TopicName set correctly');
-  t.equal(def.Properties.Subscription[0].Protocol,'lambda','Subcription protocol set correctly');
-  t.equal(def.Properties.Subscription[0].Endpoint["Fn::GetAtt"][0],'myHandler','Subcription endpoint set correctly');
-  t.end();
-});
-
-tape('lambdaSnsUser unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaSnsUser({name: 'myHandler'});
-  t.equal(def.Type,'AWS::IAM::User','Lambda SNS user type correct');
-  t.equal(def.Properties.Policies[0].PolicyName,'myHandlerSNSTopicPolicy','PolicyName set correctly');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Resource[0].Ref,'myHandlerSNSTopic','Policy resource name set correctly');
-  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[0].Action,
+  t.equal(def.Resources.testSNSUser.Type,'AWS::IAM::User');
+  t.equal(def.Resources.testSNSUser.Properties.Policies[0].PolicyDocument.Statement[0].Resource.Ref,'testSNSTopic');
+  t.deepEqual(def.Resources.testSNSUser.Properties.Policies[0].PolicyDocument.Statement[0].Action,
               ['sns:ListTopics','sns:Publish'],
               'Policy actions set correctly');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Effect,'Allow','Policy Effect set');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Resource[0]["Fn::Join"][1][4],':*','List Account Topics policy set');
-  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[1].Action,
+  t.equal(def.Resources.testSNSUser.Properties.Policies[0].PolicyDocument.Statement[0].Effect,'Allow','Policy Effect set');
+  t.equal(def.Resources.testSNSUser.Properties.Policies[0].PolicyDocument.Statement[1].Resource['Fn::Join'][1][4],':*','List Account Topics policy set');
+  t.deepEqual(def.Resources.testSNSUser.Properties.Policies[0].PolicyDocument.Statement[1].Action,
               ['sns:ListTopics'],
               'List Account Topics action set');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Effect,'Allow','List Account Topics effect set');
+  t.equal(def.Resources.testSNSUser.Properties.Policies[0].PolicyDocument.Statement[1].Effect,'Allow','List Account Topics effect set');
+
+  t.equal(def.Resources.testSNSTopic.Type, 'AWS::SNS::Topic');
+  t.equal(def.Resources.testSNSTopic.Properties.DisplayName['Fn::Join'][1][1],'test');
+  t.equal(def.Resources.testSNSTopic.Properties.TopicName['Fn::Join'][1][1],'test');
+  t.equal(def.Resources.testSNSTopic.Properties.Subscription[0].Protocol,'lambda','Subcription protocol set correctly');
+  t.equal(def.Resources.testSNSTopic.Properties.Subscription[0].Endpoint["Fn::GetAtt"][0],'test','Subcription endpoint set correctly');
+
+  t.equal(def.Resources.testSNSUserAccessKey.Properties.UserName.Ref,'testSNSUser');
+
+
+  t.equal(def.Outputs.testSNSTopic.Value.Ref,'testSNSTopic');
+  t.equal(def.Outputs.testSNSUserAccessKey.Value.Ref,'testSNSUserAccessKey');
+  t.equal(def.Outputs.testSNSUserSecretAccessKey.Value['Fn::GetAtt'][0],'testSNSUserAccessKey');
+  t.equal(def.Outputs.testSNSUserSecretAccessKey.Value['Fn::GetAtt'][1],'SecretAccessKey');
   t.end();
 });
 
-tape('lambdaSnsUserAccessKey unit tests', function(t) {
-
+tape('buildRole unit tests', function(t) {
+  var role = lambdaCfn.buildRole;
   t.throws(
     function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaSnsUserAccessKey({name: 'myHandler'});
-  t.equal(def.Type,'AWS::IAM::AccessKey','Key type set');
-  t.equal(def.Properties.UserName.Ref,'myHandlerSNSUser','Key name set');
-  t.end();
-});
-
-
-tape('policy unit tests', function(t) {
-  var noPolicy = policy({});
-  t.equal(noPolicy, undefined);
-
-  t.throws(
-    function() {
-      policy({
-        statements: []
-      });
-    }, /name property required for policy/, 'Fail in policy when no name property'
-
+      role({statements: {}});
+    }, /options.statements must be an array/, 'Fail when statements not an array'
   );
 
   t.throws(
     function() {
-      policy({
-        name: 'myLambda',
-        statements: 'myString'
-      });
-    }, /must be an array/, 'Fail when statements is not an array'
-
+      role({statements: [{}]});
+    }, /statement must contain Effect/, 'Fail when statement has no Effect'
   );
 
   t.throws(
     function() {
-      policy({
-        name: 'myLambda',
-        statements: [
-          {
-            "Action": [
-              "s3:GetObject"
-            ],
-            "Resource": "arn:aws:s3:::mySuperDuperBucket"
-          }
-        ]
-      });
-    }, /statement must contain Effect/, 'Fail when statement contains no Effect'
-
+      role({statements: [ {Effect: 'test'}]});
+    }, /statement must contain Resource or NotResource/, 'Fail when statement has no Resource or NotResource'
   );
 
   t.throws(
     function() {
-      policy({
-        name: 'myLambda',
-        statements: [
-          {
-            "Effect": "Allow",
-            "Resource": "arn:aws:s3:::mySuperDuperBucket"
-          }
-        ]
-      });
-    }, /statement must contain Action or NotAction/,
-      'Fail when statement does not contain Action or NotAction');
-
-  t.throws(
-    function() {
-      policy({
-        name: 'myLambda',
-        statements: [
-          {
-            "Effect": "Allow",
-            "Action": [
-              "s3:GetObject"
-            ]
-          }
-        ]
-      });
-    }, /statement must contain Resource or NotResource/,
-      'Fail when statement does not contain Resource or NotResource');
+      role({statements: [ {Effect: 'test', Resource: {}}]});
+    }, /statement must contain Action or NotAction/, 'Fail when statement has no Action or NotAction'
+  );
 
   var myPolicy;
 
   t.doesNotThrow(
     function() {
-      myPolicy = policy({
+      myPolicy = role({
         name: 'myLambda',
         statements: [
           {
@@ -386,9 +313,9 @@ tape('policy unit tests', function(t) {
         ]
       });
     });
-
-  t.equal(myPolicy.PolicyName, 'myLambda');
-  t.deepEqual(myPolicy, {
+//  t.comment(JSON.stringify(myPolicy));
+  t.equal(myPolicy.Resources.LambdaCfnRole.Properties.Policies[1].PolicyName, 'myLambda');
+  t.deepEqual(myPolicy.Resources.LambdaCfnRole.Properties.Policies[1], {
     PolicyName: 'myLambda',
     PolicyDocument: {
       Statement: [

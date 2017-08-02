@@ -23,6 +23,7 @@
   },
   "version": "1.0.0",
   "dependencies": {
+    "@mapbox/cfn-config": "^2.7.1",
     "app-root-path": "1.2.0",
     "aws-sdk": "^2.2.35",
     "d3-queue": "^2.0.3",

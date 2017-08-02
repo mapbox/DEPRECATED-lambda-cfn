@@ -53,15 +53,163 @@ tape('lambda unit tests', function(t) {
 });
 
 tape('buildParameters unit tests', function(t) {
-  var parameters = lambaCfn.buildParameters;
-  var def = parameters({
-    parameters: {
-      param1: 'value1',
-      param2: 'value2'
-    }
-  });
+  var parameters = lambdaCfn.buildParameters;
+  t.throws(
+    function() {
+      parameters({parameters: {a: {
+        Description: 'foo'
+      }}});
+    }, /must contain Type property/, 'Fail when parameter lacks Type property'
+  );
 
+  t.throws(
+    function() {
+      parameters({parameters: {a: {
+        Type: 'foo'
+      }}});
+    }, /must contain Description property/, 'Fail when parameter lacks Description property'
+  );
+
+  t.throws(
+    function() {
+      parameters({parameters: {'this_is_invalid': {
+        Type: 'foo',
+        Description: 'foo'
+      }}});
+    }, /Parameter names must be alphanumeric/, 'Fail on non-alphanumeric parameter names'
+  );
+  t.end();
 });
+
+tape('buildCloudWatchEvent unit tests', function(t) {
+  var event = lambdaCfn.buildCloudwatchEvent;
+
+  t.throws(
+    function() {
+      event({name: 'test'});
+    }, /functionType property required for cloudwatch event/, 'Fail on no functionType'
+  );
+
+  t.throws(
+    function() {
+      event({name: 'test'}, 'badFunctionType');
+    }, /unknown functionType property/, 'Fail on unknown functionType'
+  );
+
+  t.throws(
+    function() {
+      event({name: 'test',
+             eventSources: {
+               cloudwatchEvent: {
+                 }}},
+           'cloudwatchEvent');
+    }, /eventPattern required for cloudwatch event/, 'Fail on no eventPattern'
+  );
+
+  t.throws(
+    function() {
+      event({name: 'test',
+             eventSources: {
+               schedule: {
+               }}},
+            'schedule');
+    }, /scheduled function expression cannot/, 'Fail on no schedule expression'
+  );
+
+  var def = event({name: 'test',
+                   eventSources: {
+                     schedule: {
+                       expression: 'rate(5 minutes)'
+                     }}},
+                  'schedule');
+  t.looseEqual(Object.keys(def.Resources), ['testSchedulePermission','testScheduleRule'], 'event rule and permission named correctly');
+  t.equal(def.Resources.testScheduleRule.Properties.ScheduleExpression, 'rate(5 minutes)', 'schedule expression found');
+
+  def = event({name: 'test',
+               eventSources: {
+                 cloudwatchEvent: {
+                   eventPattern: {
+                     'detail-type': [],
+                     detail: {}
+                   }}}},
+              'cloudwatchEvent');
+  t.looseEqual(def.Resources.testCloudwatchEventRule.Properties.EventPattern, {'detail-type': [], detail: {}}, 'found event pattern');
+  t.end();
+});
+
+tape('API Gateway function unit tests', function(t) {
+  var webhookEvent = lambdaCfn.buildWebhookEvent;
+
+  var def = { name: 'test', eventSources: { webhook: {}}};
+  t.throws(
+    function() {
+      webhookEvent(def);
+    }, /Webhook function method not found/, 'Fail with no HTTP method'
+  );
+
+  def = { name: 'test', eventSources: { webhook: { method: 'FAKE' }}};
+  t.throws(
+    function() {
+      webhookEvent(def);
+    }, /Invalid client HTTP method specified/, 'Fail with invalid client HTTP method'
+  );
+
+  def = { name: 'test', eventSources: { webhook: { method: 'POST', methodResponses: {}}}};
+  t.throws(
+    function() {
+      webhookEvent(def);
+    }, /Webhook method responses is not an array/, 'Fail with non-array method response'
+  );
+
+  def = { name: 'test', eventSources: { webhook: { method: 'POST', integrationResponses: {}}}};
+  t.throws(
+    function() {
+      webhookEvent(def);
+    }, /Webhook integration responses is not an array/, 'Fail with non-array method integration'
+  );
+
+  def = { name: 'test', eventSources: { webhook: { method: 'POST', apiKey: 'true'}}};
+  var hook = webhookEvent(def);
+  var r = hook.Resources.testWebhookResource;
+  t.equal(r.Type,'AWS::ApiGateway::Resource');
+  t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
+  t.equal(r.Properties.ParentId["Fn::GetAtt"][0],'testWebhookApiGateway');
+  t.equal(r.Properties.ParentId["Fn::GetAtt"][1],'RootResourceId');
+  t.equal(r.Properties.PathPart,'test');
+
+  r = hook.Resources.testWebhookMethod;
+  t.equal(r.Type,'AWS::ApiGateway::Method');
+  t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
+  t.equal(r.Properties.ResourceId.Ref,'testWebhookResource');
+  t.equal(r.Properties.AuthorizationType,'None');
+  t.equal(r.Properties.HttpMethod,'POST');
+  t.equal(r.Properties.Integration.Type,'AWS');
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][0], 'arn:aws:apigateway:');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][1], {Ref: "AWS::Region"});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][2], ':lambda:path/2015-03-31/functions/');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][3], {"Fn::GetAtt":["test","Arn"]});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][4], '/invocations');
+  t.equal(r.Properties.ApiKeyRequired,'true');
+
+  r = hook.Resources.testWebhookApiGateway;
+  t.equal(r.Type, 'AWS::ApiGateway::RestApi','Found RestAPI resource type');
+  t.equal(r.Properties.Name.Ref,'AWS::StackName','RestAPI set to stack name');
+
+  r = hook.Resources.testWebhookApiDeployment;
+  t.equal(r.Type, 'AWS::ApiGateway::Deployment','Found API deployment resource type');
+  t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway','Deployment points to RestAPI');
+
+  r = hook.Resources.testWebhookApiKey;
+  t.equal(r.Type, 'AWS::ApiGateway::ApiKey','Found API Key resource type');
+  t.equal(r.Properties.Name.Ref,'AWS::StackName', 'References stackName');
+  t.equal(r.DependsOn,'testWebhookApiDeployment');
+  t.equal(r.Properties.Enabled,'true');
+  t.equal(r.Properties.StageKeys[0].RestApiId.Ref,'testWebhookApiGateway');
+  t.equal(r.Properties.StageKeys[0].StageName,'prod');
+  t.end();
+});
+
+
 
 tape('policy unit tests', function(t) {
   var noPolicy = policy({});
@@ -234,141 +382,6 @@ tape('splitOnComma unit tests', function(t) {
 
   t.end();
 });
-
-tape('CloudWatch Event rules unit tests', function(t) {
-  var eventDef = {
-    name: 'myHandler'
-  };
-  var eventRes;
-
-  t.throws(
-    function() {
-      cweRules({});
-    }, /name property required for cweRules/, 'Fail when no name property'
-  );
-
-  t.throws(
-    function() {
-      cweRules(eventDef);
-    }, /ruleType property required for cweRules/, 'Fail when no ruleType property'
-  );
-
-  t.throws(
-    function() {
-      cweRules(eventDef,'asdf');
-    }, /unknown ruleType property/, 'Fail when ruleType property unknown'
-  );
-
-  eventDef.eventRule = {};
-
-  t.throws(
-    function() {
-      cweRules(eventDef,'eventRule');
-    }, /eventPattern required for eventRule/, 'Fail when eventPattern not specified for eventRule'
-  );
-
-  t.throws(
-    function() {
-      cweRules(eventDef,'scheduledRule');
-    }, /scheduled rule expression cannot be undefined/, 'Fail when scheduled rule expression is undefined'
-  );
-
-  eventDef.eventRule.eventPattern = {
-    test: 'test'
-  };
-
-  var eventPat = {
-    test: 'test'
-  };
-  eventRes = (cweRules(eventDef,'eventRule'));
-  t.equal(eventRes.Type, 'AWS::Events::Rule');
-  t.deepLooseEqual(eventRes.Properties.EventPattern, eventPat,'EventPattern found');
-
-  eventDef.scheduledRule = 'rate(5 minutes)';
-  eventRes = (cweRules(eventDef,'scheduledRule'));
-    t.equal(eventRes.Properties.ScheduleExpression,'rate(5 minutes)','ScheduleExpression found');
-  t.end();
-});
-
-tape('apiGateway template stub unit tests', function(t) {
-  var g = apiGateway();
-  t.equal(g.Type, 'AWS::ApiGateway::RestApi','Found RestAPI resource type');
-  t.equal(g.Properties.Name.Ref,'AWS::StackName','RestAPI set to stack name');
-  t.end();
-});
-
-tape('apiDeployment template stub unit tests', function(t) {
-  var d = apiDeployment();
-  t.equal(d.Type, 'AWS::ApiGateway::Deployment','Found API deployment resource type');
-  t.equal(d.Properties.RestApiId.Ref,'ApiGateway','Deployment points to RestAPI');
-  t.end();
-});
-
-tape('apiKey template stub unit tests', function(t) {
-  var k = apiKey();
-  t.equal(k.Type, 'AWS::ApiGateway::ApiKey','Found API Key resource type');
-  t.equal(k.Properties.Name.Ref,'AWS::StackName');
-  t.deepLooseEqual(k.DependsOn,'ApiDeployment');
-  t.equal(k.Properties.Enabled,'true');
-  t.equal(k.Properties.StageKeys[0].RestApiId.Ref,'ApiGateway');
-  t.equal(k.Properties.StageKeys[0].StageName,'prod');
-  t.end();
-});
-
-tape('Gateway rule unit tests', function(t) {
-  t.throws(
-    function() {
-      gatewayRules({});
-    }, /name property required/, 'Fail when no name property'
-  );
-  var def = {name: 'myHandler'};
-  t.throws(
-    function() {
-      gatewayRules(def);
-    }, /resource type required for gateway rule template/, 'Fail when resource type not specified'
-  );
-  t.throws(
-    function() {
-      gatewayRules(def,'fakefake');
-    }, /Invalid api gateway resource type/, 'Fail with invalid resource type'
-  );
-
-  def.gatewayRule = {};
-  def.gatewayRule.method = 'FAKE';
-  t.throws(
-    function() {
-      gatewayRules(def,'method');
-    }, /Invalid client HTTP method specified/, 'Fail with invalid client HTTP method'
-  );
-
-  def.gatewayRule.method = 'post';
-  var r = gatewayRules(def,'resource');
-  t.equal(r.Type,'AWS::ApiGateway::Resource');
-  t.equal(r.Properties.RestApiId.Ref,'ApiGateway');
-  t.equal(r.Properties.ParentId["Fn::GetAtt"][0],'ApiGateway');
-  t.equal(r.Properties.ParentId["Fn::GetAtt"][1],'RootResourceId');
-  t.equal(r.Properties.PathPart,'myhandler');
-  r = gatewayRules(def,'method');
-  t.equal(r.Type,'AWS::ApiGateway::Method');
-  t.equal(r.Properties.RestApiId.Ref,'ApiGateway');
-  t.equal(r.Properties.ResourceId.Ref,'myHandlerGatewayRuleResource');
-  t.equal(r.Properties.AuthorizationType,'None');
-  t.equal(r.Properties.HttpMethod,'POST');
-  t.equal(r.Properties.Integration.Type,'AWS');
-  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][0], 'arn:aws:apigateway:');
-  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][1], {Ref: "AWS::Region"});
-  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][2], ':lambda:path/2015-03-31/functions/');
-  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][3], {"Fn::GetAtt":["myHandler","Arn"]});
-  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][4], '/invocations');
-
-
-  def.gatewayRule.apiKey = true;
-  r = gatewayRules(def,'method');
-  t.equal(r.Properties.ApiKeyRequired,'true');
-
-  t.end();
-});
-
 tape('lambdaSnsTopic unit tests', function(t) {
 
   t.throws(

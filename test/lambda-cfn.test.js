@@ -206,9 +206,86 @@ tape('API Gateway function unit tests', function(t) {
   t.equal(r.Properties.Enabled,'true');
   t.equal(r.Properties.StageKeys[0].RestApiId.Ref,'testWebhookApiGateway');
   t.equal(r.Properties.StageKeys[0].StageName,'prod');
+
+  r = hook.Resources.testWebhookApiLatencyAlarm;
+  t.equal(r.Type, 'AWS::CloudWatch::Alarm');
+  t.equal(r.Properties.AlarmActions.Ref, 'LambdaCfnAlarmSNSTopic');
+
+  r = hook.Resources.testWebhookApi4xxAlarm;
+  t.equal(r.Type, 'AWS::CloudWatch::Alarm');
+  t.equal(r.Properties.AlarmActions.Ref, 'LambdaCfnAlarmSNSTopic');
+
+  r = hook.Resources.testWebhookApiCountAlarm;
+  t.equal(r.Type, 'AWS::CloudWatch::Alarm');
+  t.equal(r.Properties.AlarmActions.Ref, 'LambdaCfnAlarmSNSTopic');
+
+  r = hook.Resources.testWebhookPermission;
+  t.equal(r.Type, 'AWS::Lambda::Permission');
+  t.equal(r.Properties.FunctionName['Fn::GetAtt'][0], 'test');
+
+  t.equal(hook.Outputs.testWebhookApiKey.Ref,'testWebhookApiKey');
   t.end();
 });
 
+
+tape('lambdaSnsTopic unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = lambdaSnsTopic({name: 'myHandler'});
+  t.equal(def.Type, 'AWS::SNS::Topic', 'Lambda SNS topic type correct');
+  t.ok(def.Properties.TopicName,'TopicName present');
+  t.equal(def.Properties.DisplayName["Fn::Join"][1][1],'myHandler','DisplayName set correctly');
+  t.equal(def.Properties.TopicName["Fn::Join"][1][1],'myHandler','TopicName set correctly');
+  t.equal(def.Properties.Subscription[0].Protocol,'lambda','Subcription protocol set correctly');
+  t.equal(def.Properties.Subscription[0].Endpoint["Fn::GetAtt"][0],'myHandler','Subcription endpoint set correctly');
+  t.end();
+});
+
+tape('lambdaSnsUser unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = lambdaSnsUser({name: 'myHandler'});
+  t.equal(def.Type,'AWS::IAM::User','Lambda SNS user type correct');
+  t.equal(def.Properties.Policies[0].PolicyName,'myHandlerSNSTopicPolicy','PolicyName set correctly');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Resource[0].Ref,'myHandlerSNSTopic','Policy resource name set correctly');
+  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[0].Action,
+              ['sns:ListTopics','sns:Publish'],
+              'Policy actions set correctly');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Effect,'Allow','Policy Effect set');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Resource[0]["Fn::Join"][1][4],':*','List Account Topics policy set');
+  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[1].Action,
+              ['sns:ListTopics'],
+              'List Account Topics action set');
+  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Effect,'Allow','List Account Topics effect set');
+  t.end();
+});
+
+tape('lambdaSnsUserAccessKey unit tests', function(t) {
+
+  t.throws(
+    function() {
+      lambda({});
+    }, /name property required/, 'Fail when no name property'
+
+  );
+
+  var def = lambdaSnsUserAccessKey({name: 'myHandler'});
+  t.equal(def.Type,'AWS::IAM::AccessKey','Key type set');
+  t.equal(def.Properties.UserName.Ref,'myHandlerSNSUser','Key name set');
+  t.end();
+});
 
 
 tape('policy unit tests', function(t) {
@@ -380,64 +457,6 @@ tape('splitOnComma unit tests', function(t) {
     'split string with comma and no space'
   );
 
-  t.end();
-});
-tape('lambdaSnsTopic unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaSnsTopic({name: 'myHandler'});
-  t.equal(def.Type, 'AWS::SNS::Topic', 'Lambda SNS topic type correct');
-  t.ok(def.Properties.TopicName,'TopicName present');
-  t.equal(def.Properties.DisplayName["Fn::Join"][1][1],'myHandler','DisplayName set correctly');
-  t.equal(def.Properties.TopicName["Fn::Join"][1][1],'myHandler','TopicName set correctly');
-  t.equal(def.Properties.Subscription[0].Protocol,'lambda','Subcription protocol set correctly');
-  t.equal(def.Properties.Subscription[0].Endpoint["Fn::GetAtt"][0],'myHandler','Subcription endpoint set correctly');
-  t.end();
-});
-
-tape('lambdaSnsUser unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaSnsUser({name: 'myHandler'});
-  t.equal(def.Type,'AWS::IAM::User','Lambda SNS user type correct');
-  t.equal(def.Properties.Policies[0].PolicyName,'myHandlerSNSTopicPolicy','PolicyName set correctly');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Resource[0].Ref,'myHandlerSNSTopic','Policy resource name set correctly');
-  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[0].Action,
-              ['sns:ListTopics','sns:Publish'],
-              'Policy actions set correctly');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[0].Effect,'Allow','Policy Effect set');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Resource[0]["Fn::Join"][1][4],':*','List Account Topics policy set');
-  t.deepEqual(def.Properties.Policies[0].PolicyDocument.Statement[1].Action,
-              ['sns:ListTopics'],
-              'List Account Topics action set');
-  t.equal(def.Properties.Policies[0].PolicyDocument.Statement[1].Effect,'Allow','List Account Topics effect set');
-  t.end();
-});
-
-tape('lambdaSnsUserAccessKey unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = lambdaSnsUserAccessKey({name: 'myHandler'});
-  t.equal(def.Type,'AWS::IAM::AccessKey','Key type set');
-  t.equal(def.Properties.UserName.Ref,'myHandlerSNSUser','Key name set');
   t.end();
 });
 

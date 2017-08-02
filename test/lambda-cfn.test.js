@@ -228,6 +228,10 @@ tape('API Gateway function unit tests', function(t) {
 });
 
 
+tape('buildSnsEvent unit tests', function(t) {
+
+});
+
 tape('lambdaSnsTopic unit tests', function(t) {
 
   t.throws(

@@ -34,16 +34,13 @@ tape('compileFunction unit tests', function(t) {
   var p1 = { Policies: [{a:'b'},{c:'d'}]};
   var p2 = { Policies: [{e:'f'},{g:'h'}]};
   var def = compile(p1,p2);
-  t.comment(JSON.stringify(def));
   t.looseEqual(def.Policies,[{a:'b'},{c:'d'},{e:'f'},{g:'h'}], 'Policies array created correctly');
 
   p1 = { Policies: []};
   p2 = { Policies: {}};
   def = compile(p1,p2);
-  t.comment(JSON.stringify(def));
-
+  t.equal(def.Policies,undefined, 'Empty Policies skipped');
   t.end();
-
 });
 
 tape('buildFunction unit tests', function(t) {
@@ -377,7 +374,7 @@ tape('buildRole unit tests', function(t) {
         ]
       });
     });
-//  t.comment(JSON.stringify(myPolicy));
+
   t.equal(myPolicy.Resources.LambdaCfnRole.Properties.Policies[1].PolicyName, 'myLambda');
   t.deepEqual(myPolicy.Resources.LambdaCfnRole.Properties.Policies[1], {
     PolicyName: 'myLambda',

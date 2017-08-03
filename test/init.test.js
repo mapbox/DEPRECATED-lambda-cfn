@@ -51,6 +51,12 @@ tape('Create function directory and files', function(t) {
   });
 });
 
+tape('Creating function with bad stack name fails', function(t) {
+  t.throws(function() { lambdaCfnInit.createFunctionFiles('123-badRule', 
+    function(err, res){ }) },/Not a valid AWS CloudFormation stack name - must contain only letters, numbers, dashes and start with an alpha character/);
+  t.end();
+});
+
 tape('Teardown', function(t) {
   process.chdir('..');
   rimraf('anotherFakeRule', function(err){

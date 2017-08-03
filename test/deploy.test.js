@@ -15,7 +15,6 @@ tape('Deployment fails without an environment name', function(t){
 });
 
 tape('Deployment fails if cfn config bucket not defined and $CFN_CONFIG_BUCKET is undefined', function(t) {
-  console.log(path.join(__dirname, 'fixtures/deploy'));
   process.chdir(path.join(__dirname, 'fixtures/deploy'));
   delete process.env.CFN_CONFIG_BUCKET;
   t.throws(function() { lambdaCfnDeploy.deploy('create', 'development') });

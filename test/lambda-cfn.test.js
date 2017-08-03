@@ -278,6 +278,48 @@ tape('buildWebhookEvent unit tests', function(t) {
   t.equal(r.Properties.FunctionName['Fn::GetAtt'][0], 'test');
 
   t.equal(hook.Outputs.testWebhookApiKey.Ref,'testWebhookApiKey');
+
+  // test empty integration
+  def = { name: 'test', eventSources: { webhook: { method: 'POST', integration: {}}}};
+  hook = webhookEvent(def);
+  r = hook.Resources.testWebhookMethod;
+  t.equal(r.Type,'AWS::ApiGateway::Method');
+  t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
+  t.equal(r.Properties.ResourceId.Ref,'testWebhookResource');
+  t.equal(r.Properties.AuthorizationType,'None');
+  t.equal(r.Properties.HttpMethod,'POST');
+  t.equal(r.Properties.Integration.Type,'AWS');
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][0], 'arn:aws:apigateway:');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][1], {Ref: "AWS::Region"});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][2], ':lambda:path/2015-03-31/functions/');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][3], {"Fn::GetAtt":["test","Arn"]});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][4], '/invocations');
+
+  // test additions to integration defaults
+  def = { name: 'test', eventSources: { webhook: { method: 'POST', integration: {
+    Type: 'HOOK',
+    PassthroughBehavior: 'WHEN_NO_TEMPLATES',
+    RequestTemplates: {
+      'application/x-www-form-urlencoded': '{ "postBody" : $input.json("$")}'
+    }
+  }}}};
+  hook = webhookEvent(def);
+  r = hook.Resources.testWebhookMethod;
+  t.equal(r.Type,'AWS::ApiGateway::Method');
+  t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
+  t.equal(r.Properties.ResourceId.Ref,'testWebhookResource');
+  t.equal(r.Properties.AuthorizationType,'None');
+  t.equal(r.Properties.HttpMethod,'POST');
+  t.equal(r.Properties.Integration.Type,'HOOK');
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][0], 'arn:aws:apigateway:');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][1], {Ref: "AWS::Region"});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][2], ':lambda:path/2015-03-31/functions/');
+  t.looseEqual(r.Properties.Integration.Uri["Fn::Join"][1][3], {"Fn::GetAtt":["test","Arn"]});
+  t.equal(r.Properties.Integration.Uri["Fn::Join"][1][4], '/invocations');
+  t.equal(r.Properties.Integration.PassthroughBehavior, 'WHEN_NO_TEMPLATES');
+  t.equal(r.Properties.Integration.RequestTemplates['application/x-www-form-urlencoded'],
+          '{ "postBody" : $input.json("$")}');
+
   t.end();
 });
 

@@ -1,0 +1,7 @@
+{
+  "name": "fake-rules-project",
+  "version": "0.0.0",
+  "dependencies": {
+    "lambda-cfn": "*"
+  }
+}

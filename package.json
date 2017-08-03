@@ -33,7 +33,7 @@
     "tape": "^4.5.1",
     "jscs": "^1.11.3",
     "jshint": "^2.6.3",
-    "nock": "^7.7.2"
+    "@mapbox/mock-aws-sdk-js": "^0.0.5"
   },
   "main": "lib/lambda-cfn.js",
   "jshintConfig": {

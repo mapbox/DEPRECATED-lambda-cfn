@@ -468,23 +468,15 @@ tape('buildServiceAlarms unit tests', function(t) {
 
 tape('buildSNSDestination unit tests', function(t) {
   var sns = lambdaCfn.buildSnsDestination;
-  var def = sns({name: 'test'});
-  t.looseEqual(def.Resources, {});
-  t.looseEqual(def.Parameters, {});
-  t.looseEqual(def.Variables, {});
 
-  def = sns({name: 'test', destinations: {}});
-  t.looseEqual(def.Resources, {});
-  t.looseEqual(def.Parameters, {});
-  t.looseEqual(def.Variables, {});
-
-  def = sns({name: 'test', destinations: {sns: {}}});
-  t.notEqual(def.Parameters.ApplicationAlarmEmail, undefined, 'Parameter found');
+  var def = sns({name: 'test', destinations: {sns: {mySns: { Description: 'test'}}}});
+  t.notEqual(def.Parameters.mySnsEmail, undefined, 'Parameter found');
   t.equal(Array.isArray(def.Policies), true, 'Policies array is present');
+  t.looseEqual(def.Policies[0].PolicyName, 'mySnsTopicPermissions');
   t.looseEqual(def.Policies[0].PolicyDocument.Statement[0],{ Effect: 'Allow', Action: 'sns:Publish', Resource: { Ref: 'test'}}, 'SNS destination policy matched');
-  t.equal(def.Resources.testSNSDestination.Type, 'AWS::SNS::Topic');
-  t.equal(def.Resources.testSNSDestination.Properties.Subscription[0].Endpoint.Ref, 'ApplicationAlarmEmail');
-  t.equal(def.Variables.ApplicationAlarmSNSTopic.Ref, 'testSNSDestination');
+  t.equal(def.Resources.mySnsTopic.Type, 'AWS::SNS::Topic');
+  t.equal(def.Resources.mySnsTopic.Properties.Subscription[0].Endpoint.Ref, 'mySnsEmail');
+  t.equal(def.Variables.mySnsTopic.Ref, 'mySnsTopic');
   t.end();
 });
 

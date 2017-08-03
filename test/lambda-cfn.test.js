@@ -222,13 +222,6 @@ tape('buildWebhookEvent unit tests', function(t) {
     }, /Webhook method responses is not an array/, 'Fail with non-array method response'
   );
 
-  def = { name: 'test', eventSources: { webhook: { method: 'POST', integrationResponses: {}}}};
-  t.throws(
-    function() {
-      webhookEvent(def);
-    }, /Webhook integration responses is not an array/, 'Fail with non-array method integration'
-  );
-
   def = { name: 'test', eventSources: { webhook: { method: 'POST', apiKey: 'true'}}};
   var hook = webhookEvent(def);
   var r = hook.Resources.testWebhookResource;

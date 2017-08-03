@@ -3,19 +3,101 @@ var lambdaCfn = require('../lib/lambda-cfn');
 
 
 tape('buildFunctionTemplate unit tests', function(t) {
+  var template = lambdaCfn.buildFunctionTemplate;
+  var def = template({name: 'test'});
+  t.equal(def.AWSTemplateFormatVersion, '2010-09-09', 'Template format version');
+  t.equal(def.Description, 'test lambda-cfn function', 'Template description');
+  t.end();
+});
+
+tape('compileFunction unit tests', function(t) {
+  var compile = lambdaCfn.compileFunction;
+  var m1 = {};
+  var m2 = {};
+  var testSet = ['Metadata','Parameters','Mappings','Conditions','Resources','Outputs','Variables' ];
+
+  testSet.map(function(m) {
+    m1[m] = { m1: {} };
+    m2[m] = { m1: {} };
+    t.throws(
+      function() {
+        compile(m1, m2);
+      }, /name used more than once/, 'Fail when duplicate ' + m + ' objects');
+  });
+
+  // var array1 = { Policies: {}};
+  // t.throws(
+  //   function() {
+  //     compile(array1);
+  //   }, /not arrays/, 'Fail when Policies are not arrays');
+
+  t.end();
+
+});
+
+tape('buildFunction unit tests', function(t) {
+  var lambda = lambdaCfn.buildFunction;
+  t.throws(
+    function() { lambda({}); }, /Function name is required/, 'Fail when no function name given'
+  );
+  var def = lambda({name: 'test'});
+  t.ok(def.Resources.testSNSPermission,'default SNS event function');
+  t.ok(def.Resources.testSNSUser,'default SNS event function');
+  t.ok(def.Resources.testSNSTopic,'default SNS event function');
+  t.ok(def.Resources.testSNSUserAccessKey,'default SNS event function');
+  t.ok(def.Outputs.testSNSTopic,'default SNS event function');
+
+  t.throws(function() {
+    lambda({name: 'test', eventSources: { bad: {}}});
+  }, /Unknown event source specified: bad/, 'Fail on unknown event source');
+
+  t.throws(function() {
+    lambda({name: 'test', destinations: { bad: {}}});
+  }, /Unknown destination specified: bad/, 'Fail on unknown destination');
+
+  var i = 0;
+  var parameters = {};
+  while (i < 61) {
+    parameters['p' + i] = { Type:'a', Description: 'b'};
+    i++;
+  };
+  t.throws(function() {
+    lambda({name: 'test', parameters: parameters });
+  }, /More than 60 parameters specified/, 'Fail on >60 parameters');
+
+  def = lambda({name: 'test'});
+  t.equal(def.Policies, undefined, 'Non CFN field Policies removed');
+  t.equal(def.Variables, undefined, 'Non CFN field Variables removed');
+
+  t.end();
+});
+
+tape('buildParameters unit tests', function(t) {
+  var parameters = lambdaCfn.buildParameters;
   t.throws(
     function() {
-      lambdaCfn.buildFunctionTemplate(
-        {}
-      );
-    }, /Function name is required/, 'Fail when no function name given'
+      parameters({parameters: {a: {
+        Description: 'foo'
+      }}});
+    }, /must contain Type property/, 'Fail when parameter lacks Type property'
   );
 
-  var template = lambdaCfn.buildFunctionTemplate({
-    name: 'test'
-  });
-  t.equal(template.AWSTemplateFormatVersion, '2010-09-09', 'Template format version');
-  t.equal(template.Description, 'test lambda-cfn function', 'Template description');
+  t.throws(
+    function() {
+      parameters({parameters: {a: {
+        Type: 'foo'
+      }}});
+    }, /must contain Description property/, 'Fail when parameter lacks Description property'
+  );
+
+  t.throws(
+    function() {
+      parameters({parameters: {'this_is_invalid': {
+        Type: 'foo',
+        Description: 'foo'
+      }}});
+    }, /Parameter names must be alphanumeric/, 'Fail on non-alphanumeric parameter names'
+  );
   t.end();
 });
 
@@ -50,35 +132,6 @@ tape('lambda unit tests', function(t) {
   t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs6.10', 'Default to Node 6.10 runtime if not specified');
   t.end();
 
-});
-
-tape('buildParameters unit tests', function(t) {
-  var parameters = lambdaCfn.buildParameters;
-  t.throws(
-    function() {
-      parameters({parameters: {a: {
-        Description: 'foo'
-      }}});
-    }, /must contain Type property/, 'Fail when parameter lacks Type property'
-  );
-
-  t.throws(
-    function() {
-      parameters({parameters: {a: {
-        Type: 'foo'
-      }}});
-    }, /must contain Description property/, 'Fail when parameter lacks Description property'
-  );
-
-  t.throws(
-    function() {
-      parameters({parameters: {'this_is_invalid': {
-        Type: 'foo',
-        Description: 'foo'
-      }}});
-    }, /Parameter names must be alphanumeric/, 'Fail on non-alphanumeric parameter names'
-  );
-  t.end();
 });
 
 tape('buildCloudWatchEvent unit tests', function(t) {
@@ -137,7 +190,7 @@ tape('buildCloudWatchEvent unit tests', function(t) {
   t.end();
 });
 
-tape('API Gateway function unit tests', function(t) {
+tape('buildWebhookEvent unit tests', function(t) {
   var webhookEvent = lambdaCfn.buildWebhookEvent;
 
   var def = { name: 'test', eventSources: { webhook: {}}};
@@ -209,15 +262,15 @@ tape('API Gateway function unit tests', function(t) {
 
   r = hook.Resources.testWebhookApiLatencyAlarm;
   t.equal(r.Type, 'AWS::CloudWatch::Alarm');
-  t.equal(r.Properties.AlarmActions.Ref, 'LambdaCfnAlarmSNSTopic');
+  t.equal(r.Properties.AlarmActions[0].Ref, 'ServiceAlarmSNSTopic');
 
   r = hook.Resources.testWebhookApi4xxAlarm;
   t.equal(r.Type, 'AWS::CloudWatch::Alarm');
-  t.equal(r.Properties.AlarmActions.Ref, 'LambdaCfnAlarmSNSTopic');
+  t.equal(r.Properties.AlarmActions[0].Ref, 'ServiceAlarmSNSTopic');
 
   r = hook.Resources.testWebhookApiCountAlarm;
   t.equal(r.Type, 'AWS::CloudWatch::Alarm');
-  t.equal(r.Properties.AlarmActions.Ref, 'LambdaCfnAlarmSNSTopic');
+  t.equal(r.Properties.AlarmActions[0].Ref, 'ServiceAlarmSNSTopic');
 
   r = hook.Resources.testWebhookPermission;
   t.equal(r.Type, 'AWS::Lambda::Permission');
@@ -338,38 +391,62 @@ tape('buildRole unit tests', function(t) {
   });
 
   t.end();
-
 });
 
-tape('cloudwatch unit tests', function(t) {
-  t.throws(
-    function() {
-      cloudwatch({});
-    }, '/name property required/', 'Fail when no name property'
-  );
-
-  var alarms = cloudwatch({name: 'myFunction'});
-  t.notEqual(alarms.myFunctionAlarmErrors, undefined, 'Errors alarm is set');
-  t.notEqual(alarms.myFunctionAlarmNoInvocations, undefined, 'NoInvocations alarm is set');
+tape('buildServiceAlarms unit tests', function(t) {
+  var alarms = lambdaCfn.buildServiceAlarms;
+  var def = alarms({name: 'test'});
+  t.notEqual(def.Resources.testAlarmErrors, undefined, 'Errors alarm is set');
+  t.notEqual(def.Resources.testAlarmNoInvocations, undefined, 'NoInvocations alarm is set');
   t.equal(
-    alarms.myFunctionAlarmErrors.Properties.ComparisonOperator,
+    def.Resources.testAlarmErrors.Properties.ComparisonOperator,
     'GreaterThanThreshold', 'Uses correct comparison');
   t.equal(
-    alarms.myFunctionAlarmNoInvocations.Properties.ComparisonOperator,
+    def.Resources.testAlarmNoInvocations.Properties.ComparisonOperator,
     'LessThanThreshold', 'Uses correct comparison');
   t.equal(
-    alarms.myFunctionAlarmErrors.Properties.MetricName,
+    def.Resources.testAlarmErrors.Properties.MetricName,
     'Errors', 'Uses correct metric name');
   t.equal(
-    alarms.myFunctionAlarmNoInvocations.Properties.MetricName,
-    'Invocations', 'Uses correct metric name');
+    def.Resources.testAlarmNoInvocations.Properties.Namespace,
+    'AWS/Lambda', 'uses correct metric namespace');
+  t.equal(
+    def.Resources.testAlarmErrors.Properties.Namespace,
+    'AWS/Lambda', 'uses correct metric namespace');
+  t.equal(def.Resources.ServiceAlarmSNSTopic.Type, 'AWS::SNS::Topic');
+  t.equal(def.Resources.ServiceAlarmSNSTopic.Properties.TopicName['Fn::Join'][1][1],'ServiceAlarm');
+  t.equal(def.Resources.ServiceAlarmSNSTopic.Properties.Subscription[0].Endpoint.Ref, 'ServiceAlarmEmail');
+
+  t.notEqual(def.Parameters.ServiceAlarmEmail, undefined, 'ServiceAlarmEmail Parameter set');
+  t.equal(def.Variables.ServiceAlarmSNSTopic.Ref,'ServiceAlarmSNSTopic');
 
   t.end();
+});
 
+tape('buildSNSDestination unit tests', function(t) {
+  var sns = lambdaCfn.buildSnsDestination;
+  var def = sns({name: 'test'});
+  t.looseEqual(def.Resources, {});
+  t.looseEqual(def.Parameters, {});
+  t.looseEqual(def.Variables, {});
+
+  def = sns({name: 'test', destinations: {}});
+  t.looseEqual(def.Resources, {});
+  t.looseEqual(def.Parameters, {});
+  t.looseEqual(def.Variables, {});
+
+  def = sns({name: 'test', destinations: {sns: {}}});
+  t.notEqual(def.Parameters.ApplicationAlarmEmail, undefined, 'Parameter found');
+  t.equal(Array.isArray(def.Policies), true, 'Policies array is present');
+  t.looseEqual(def.Policies[0].PolicyDocument.Statement[0],{ Effect: 'Allow', Action: 'sns:Publish', Resource: { Ref: 'test'}}, 'SNS destination policy matched');
+  t.equal(def.Resources.testSNSDestination.Type, 'AWS::SNS::Topic');
+  t.equal(def.Resources.testSNSDestination.Properties.Subscription[0].Endpoint.Ref, 'ApplicationAlarmEmail');
+  t.equal(def.Variables.ApplicationAlarmSNSTopic.Ref, 'testSNSDestination');
+  t.end();
 });
 
 tape('splitOnComma unit tests', function(t) {
-
+  var splitOnComma = lambdaCfn.splitOnComma;
   t.deepEqual(
     splitOnComma('foo, bar'),
     ['foo', 'bar'],
@@ -389,76 +466,4 @@ tape('splitOnComma unit tests', function(t) {
   );
 
   t.end();
-});
-
-tape('template outputs unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambda({});
-    }, /name property required/, 'Fail when no name property'
-
-  );
-
-  var def = outputs({name: 'myHandler'});
-  t.looseEqual(def,{},'non-snsRules have empty output');
-  def = outputs({name: 'myHandler',snsRule:{}});
-  t.equal(def.myHandlerSNSTopic.Value.Ref,'myHandlerSNSTopic','SNS topic output is set');
-  t.equal(def.myHandlerSNSUserAccessKey.Value.Ref,'myHandlerSNSUserAccessKey','User access key output is set');
-  t.equal(def.myHandlerSNSUserSecretAccessKey.Value["Fn::GetAtt"][0],'myHandlerSNSUserAccessKey','User secret access key output is set');
-  def = outputs({name: 'myHandler',gatewayRule:{}});
-  t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][1],{Ref: "ApiGateway"});
-  t.equal(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][2],".execute-api.");
-  t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][3],{Ref: "AWS::Region"});
-  t.equal(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][4],".amazonaws.com/prod/");
-  t.looseEqual(def.myHandlerAPIEndpoint.Value["Fn::Join"][1][5],"myhandler");
-  t.end();
-});
-
-tape('envVariableParser unit tests', function(t) {
-
-    var onlyGlobalEnvVariables = {};
-
-    t.doesNotThrow(
-        function() {
-            onlyGlobalEnvVariables = envVariableParser({});
-        }, null, 'Does not throw if no parameters');
-
-    t.deepEqual(onlyGlobalEnvVariables,
-        {
-            "AccountName": {"Ref": "AWS::AccountId"},
-            "LambdaCfnAlarmSNSTopic": {"Ref": "LambdaCfnAlarmSNSTopic"},
-            "Region": {"Ref": "AWS::Region"},
-            "StackId": {"Ref": "AWS::StackId"},
-            "StackName": {"Ref": "AWS::StackName"}
-        },
-        'Only global env variables if no parameters');
-
-    var validEnvVariables = envVariableParser({
-        name: 'myFunction',
-        parameters: {
-            param1: {
-                Type: 'String',
-                Description: 'desc 1'
-            },
-            param2: {
-                Type: 'String',
-                Description: 'desc 2'
-            }
-        }
-    });
-
-    t.deepEqual(validEnvVariables,
-        {
-            "myFunctionparam1": {"Ref": "myFunctionparam1"},
-            "myFunctionparam2": {"Ref": "myFunctionparam2"},
-            "AccountName": {"Ref": "AWS::AccountId"},
-            "LambdaCfnAlarmSNSTopic": {"Ref": "LambdaCfnAlarmSNSTopic"},
-            "Region": {"Ref": "AWS::Region"},
-            "StackId": {"Ref": "AWS::StackId"},
-            "StackName": {"Ref": "AWS::StackName"}
-        },
-        'Global plus function env variables set');
-
-    t.end();
 });

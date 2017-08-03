@@ -29,6 +29,7 @@
     "aws-sdk": "^2.2.35",
     "d3-queue": "^2.0.3",
     "git-rev-sync": "^1.9.1",
+    "lodash": "^4.17.4",
     "minimist": "^1.2.0",
     "rimraf": "^2.6.1",
     "streambot": "3.4.0"

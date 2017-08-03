@@ -31,6 +31,17 @@ tape('compileFunction unit tests', function(t) {
   //     compile(array1);
   //   }, /not arrays/, 'Fail when Policies are not arrays');
 
+  var p1 = { Policies: [{a:'b'},{c:'d'}]};
+  var p2 = { Policies: [{e:'f'},{g:'h'}]};
+  var def = compile(p1,p2);
+  t.comment(JSON.stringify(def));
+  t.looseEqual(def.Policies,[{a:'b'},{c:'d'},{e:'f'},{g:'h'}], 'Policies array created correctly');
+
+  p1 = { Policies: []};
+  p2 = { Policies: {}};
+  def = compile(p1,p2);
+  t.comment(JSON.stringify(def));
+
   t.end();
 
 });

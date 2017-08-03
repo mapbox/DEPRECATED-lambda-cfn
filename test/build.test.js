@@ -6,22 +6,6 @@ var util = require('util');
 
 
 tape('Compile unit tests', function(t) {
-
-  t.throws(
-    function() {
-      lambdaCfn.build({});
-    }, 'Function name is required', 'Function name is required'
-  );
-
-  t.throws(
-    function() {
-      lambdaCfn.build({
-        name: 'test',
-        runtime: 'badNodejs'
-      });
-    }, 'Invalid AWS Lambda node.js runtime badNodejs', 'bad runtime'
-  );
-
   var simpleBuilt = lambdaCfn.build({
     name: 'simple'
   });

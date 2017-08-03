@@ -16,128 +16,12 @@
       "Type": "String",
       "Description": "lambda function S3 prefix location"
     },
-    "AlarmEmail": {
+    "ServiceAlarmEmail": {
       "Type": "String",
       "Description": "Service alarm notifications will send to this email address"
     }
   },
   "Resources": {
-    "scheduledRuleAlarmErrors": {
-      "Type": "AWS::CloudWatch::Alarm",
-      "Properties": {
-        "EvaluationPeriods": "5",
-        "Statistic": "Sum",
-        "Threshold": "0",
-        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
-        "Period": "60",
-        "AlarmActions": {
-          "Ref": "LambdaCfnAlarmSNSTopic"
-        },
-        "Namespace": "AWS/Lambda",
-        "Dimensions": [
-          {
-            "Name": "FunctionName",
-            "Value": {
-              "Ref": "scheduledRule"
-            }
-          }
-        ],
-        "ComparisonOperator": "GreaterThanThreshold",
-        "MetricName": "Errors"
-      }
-    },
-    "scheduledRuleAlarmNoInvocations": {
-      "Type": "AWS::CloudWatch::Alarm",
-      "Properties": {
-        "EvaluationPeriods": "5",
-        "Statistic": "Sum",
-        "Threshold": "0",
-        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
-        "Period": "60",
-        "AlarmActions": {
-          "Ref": "LambdaCfnAlarmSNSTopic"
-        },
-        "Namespace": "AWS/Lambda",
-        "Dimensions": [
-          {
-            "Name": "FunctionName",
-            "Value": {
-              "Ref": "scheduledRule"
-            }
-          }
-        ],
-        "ComparisonOperator": "LessThanThreshold",
-        "MetricName": "Invocations"
-      }
-    },
-    "scheduledRule": {
-      "Type": "AWS::Lambda::Function",
-      "Properties": {
-        "Code": {
-          "S3Bucket": {
-            "Ref": "CodeS3Bucket"
-          },
-          "S3Key": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Ref": "CodeS3Prefix"
-                },
-                {
-                  "Ref": "GitSha"
-                },
-                ".zip"
-              ]
-            ]
-          }
-        },
-        "Role": {
-          "Fn::GetAtt": [
-            "LambdaCfnRole",
-            "Arn"
-          ]
-        },
-        "Description": {
-          "Ref": "AWS::StackName"
-        },
-        "Environment": {
-          "Variables": {
-            "StackName": {
-              "Ref": "AWS::StackName"
-            },
-            "Region": {
-              "Ref": "AWS::Region"
-            },
-            "AccountId": {
-              "Ref": "AWS::AccountId"
-            },
-            "StackId": {
-              "Ref": "AWS::StackId"
-            },
-            "token": {
-              "Ref": "token"
-            },
-            "CodeS3Bucket": {
-              "Ref": "CodeS3Bucket"
-            },
-            "CodeS3Prefix": {
-              "Ref": "CodeS3Prefix"
-            },
-            "GitSha": {
-              "Ref": "GitSha"
-            },
-            "AlarmEmail": {
-              "Ref": "AlarmEmail"
-            }
-          }
-        },
-        "Handler": "function",
-        "Timeout": 60,
-        "MemorySize": 128,
-        "Runtime": "nodejs4.3"
-      }
-    },
     "LambdaCfnRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -192,7 +76,7 @@
                     "sns:Publish"
                   ],
                   "Resource": {
-                    "Ref": "LambdaCfnAlarmSNSTopic"
+                    "Ref": "ServiceAlarmSNSTopic"
                   }
                 },
                 {
@@ -206,6 +90,153 @@
             }
           }
         ]
+      }
+    },
+    "scheduledRuleAlarmErrors": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "EvaluationPeriods": "5",
+        "Statistic": "Sum",
+        "Threshold": "0",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#Errors",
+        "Period": "60",
+        "AlarmActions": [
+          {
+            "Ref": "ServiceAlarmSNSTopic"
+          }
+        ],
+        "Namespace": "AWS/Lambda",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "scheduledRule"
+            }
+          }
+        ],
+        "ComparisonOperator": "GreaterThanThreshold",
+        "MetricName": "Errors"
+      }
+    },
+    "scheduledRuleAlarmNoInvocations": {
+      "Type": "AWS::CloudWatch::Alarm",
+      "Properties": {
+        "EvaluationPeriods": "5",
+        "Statistic": "Sum",
+        "Threshold": "0",
+        "AlarmDescription": "https://github.com/mapbox/lambda-cfn/blob/master/alarms.md#NoInvocations",
+        "Period": "60",
+        "AlarmActions": [
+          {
+            "Ref": "ServiceAlarmSNSTopic"
+          }
+        ],
+        "Namespace": "AWS/Lambda",
+        "Dimensions": [
+          {
+            "Name": "FunctionName",
+            "Value": {
+              "Ref": "scheduledRule"
+            }
+          }
+        ],
+        "ComparisonOperator": "LessThanThreshold",
+        "MetricName": "Invocations"
+      }
+    },
+    "ServiceAlarmSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "ServiceAlarm"
+            ]
+          ]
+        },
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Ref": "ServiceAlarmEmail"
+            },
+            "Protocol": "email"
+          }
+        ]
+      }
+    },
+    "scheduledRule": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "CodeS3Bucket"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Ref": "CodeS3Prefix"
+                },
+                {
+                  "Ref": "GitSha"
+                },
+                ".zip"
+              ]
+            ]
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
+          ]
+        },
+        "Description": {
+          "Ref": "AWS::StackName"
+        },
+        "Environment": {
+          "Variables": {
+            "ServiceAlarmSNSTopic": {
+              "Ref": "ServiceAlarmSNSTopic"
+            },
+            "StackName": {
+              "Ref": "AWS::StackName"
+            },
+            "Region": {
+              "Ref": "AWS::Region"
+            },
+            "AccountId": {
+              "Ref": "AWS::AccountId"
+            },
+            "StackId": {
+              "Ref": "AWS::StackId"
+            },
+            "token": {
+              "Ref": "token"
+            },
+            "CodeS3Bucket": {
+              "Ref": "CodeS3Bucket"
+            },
+            "CodeS3Prefix": {
+              "Ref": "CodeS3Prefix"
+            },
+            "GitSha": {
+              "Ref": "GitSha"
+            },
+            "ServiceAlarmEmail": {
+              "Ref": "ServiceAlarmEmail"
+            }
+          }
+        },
+        "Handler": "function",
+        "Timeout": 60,
+        "MemorySize": 128,
+        "Runtime": "nodejs4.3"
       }
     },
     "scheduledRuleSchedulePermission": {
@@ -241,7 +272,7 @@
         }
       }
     },
-    "scheduledRuleSchedule": {
+    "scheduledRuleScheduleRule": {
       "Type": "AWS::Events::Rule",
       "Properties": {
         "RoleArn": {
@@ -263,22 +294,6 @@
           }
         ],
         "ScheduleExpression": "rate(5 minutes)"
-      }
-    },
-    "LambdaCfnAlarmSNSTopic": {
-      "Type": "AWS::SNS::Topic",
-      "Properties": {
-        "TopicName": {
-          "Ref": "AWS::StackName"
-        },
-        "Subscription": [
-          {
-            "Endpoint": {
-              "Ref": "AlarmEmail"
-            },
-            "Protocol": "email"
-          }
-        ]
       }
     }
   },

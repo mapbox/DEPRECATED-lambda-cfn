@@ -1,5 +1,9 @@
 {
   "Parameters": {
+    "token": {
+      "Type": "String",
+      "Description": "token"
+    },
     "CodeS3Bucket": {
       "Type": "String",
       "Description": "lambda function S3 bucket location"
@@ -10,7 +14,7 @@
     },
     "GitSha": {
       "Type": "String",
-      "Description": "lambda function S3 prefix location"
+      "Description": "Deploy Gitsha"
     },
     "ServiceAlarmEmail": {
       "Type": "String",
@@ -88,7 +92,7 @@
         ]
       }
     },
-    "simpleAlarmErrors": {
+    "eventAlarmErrors": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -106,7 +110,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "simple"
+              "Ref": "event"
             }
           }
         ],
@@ -114,7 +118,7 @@
         "MetricName": "Errors"
       }
     },
-    "simpleAlarmNoInvocations": {
+    "eventAlarmNoInvocations": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -132,7 +136,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "simple"
+              "Ref": "event"
             }
           }
         ],
@@ -164,7 +168,7 @@
         ]
       }
     },
-    "simple": {
+    "event": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -212,6 +216,9 @@
             "StackId": {
               "Ref": "AWS::StackId"
             },
+            "token": {
+              "Ref": "token"
+            },
             "CodeS3Bucket": {
               "Ref": "CodeS3Bucket"
             },
@@ -226,142 +233,86 @@
             }
           }
         },
-        "Handler": "function",
+        "Handler": "test/function",
         "Timeout": 60,
         "MemorySize": 128,
-        "Runtime": "nodejs6.10"
+        "Runtime": "nodejs4.3"
       }
     },
-    "simpleSNSPermission": {
+    "eventCloudwatchEventPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "simple",
+            "event",
             "Arn"
           ]
         },
         "Action": "lambda:InvokeFunction",
-        "Principal": "sns.amazonaws.com",
+        "Principal": "events.amazonaws.com",
         "SourceArn": {
-          "Ref": "simpleSNSTopic"
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:events:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":rule/",
+              {
+                "Ref": "AWS::StackName"
+              },
+              "*"
+            ]
+          ]
         }
       }
     },
-    "simpleSNSUser": {
-      "Type": "AWS::IAM::User",
+    "eventCloudwatchEventRule": {
+      "Type": "AWS::Events::Rule",
       "Properties": {
-        "Policies": [
-          {
-            "PolicyName": "simpleSNSTopicPolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Resource": {
-                    "Ref": "simpleSNSTopic"
-                  },
-                  "Action": [
-                    "sns:ListTopics",
-                    "sns:Publish"
-                  ],
-                  "Effect": "Allow"
-                },
-                {
-                  "Resource": {
-                    "Fn::Join": [
-                      "",
-                      [
-                        "arn:aws:sns:",
-                        {
-                          "Ref": "AWS::Region"
-                        },
-                        ":",
-                        {
-                          "Ref": "AWS::AccountId"
-                        },
-                        ":*"
-                      ]
-                    ]
-                  },
-                  "Action": [
-                    "sns:ListTopics"
-                  ],
-                  "Effect": "Allow"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "simpleSNSTopic": {
-      "Type": "AWS::SNS::Topic",
-      "Properties": {
-        "DisplayName": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Ref": "AWS::StackName"
-              },
-              "simple"
-            ]
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
           ]
         },
-        "TopicName": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Ref": "AWS::StackName"
-              },
-              "simple"
-            ]
-          ]
-        },
-        "Subscription": [
+        "State": "ENABLED",
+        "Targets": [
           {
-            "Endpoint": {
+            "Arn": {
               "Fn::GetAtt": [
-                "simple",
+                "event",
                 "Arn"
               ]
             },
-            "Protocol": "lambda"
+            "Id": "event"
           }
-        ]
-      }
-    },
-    "simpleSNSUserAccessKey": {
-      "Type": "AWS::IAM::AccessKey",
-      "Properties": {
-        "UserName": {
-          "Ref": "simpleSNSUser"
+        ],
+        "EventPattern": {
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail": {
+            "eventSource": [
+              "iam.amazonaws.com"
+            ],
+            "eventName": [
+              "CreatePolicy",
+              "CreatePolicyVersion",
+              "PutGroupPolicy",
+              "PutRolePolicy",
+              "PutUserPolicy"
+            ]
+          }
         }
-      }
-    }
-  },
-  "Outputs": {
-    "simpleSNSTopic": {
-      "Value": {
-        "Ref": "simpleSNSTopic"
-      }
-    },
-    "simpleSNSUserAccessKey": {
-      "Value": {
-        "Ref": "simpleSNSUserAccessKey"
-      }
-    },
-    "simpleSNSUserSecretAccessKey": {
-      "Value": {
-        "Fn::GetAtt": [
-          "simpleSNSUserAccessKey",
-          "SecretAccessKey"
-        ]
       }
     }
   },
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "simple lambda-cfn function"
+  "Description": "event lambda-cfn function"
 }

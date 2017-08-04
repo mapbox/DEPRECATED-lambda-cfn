@@ -5,13 +5,12 @@ var lambdaCfn = require('../lib/lambda-cfn');
 var util = require('util');
 
 
-tape('Compile unit tests', function(t) {
-  var simpleBuilt = lambdaCfn.build({
-    name: 'simple'
-  });
-
-  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template'), "utf8"));
-
+tape('Template unit tests', function(t) {
+  var simpleBuilt = lambdaCfn.build({ name: 'simple' });
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/simple.template.json'), JSON.stringify(simpleBuilt, null, 2), 'utf8');
+  }
+  var simpleFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/simple.template.json'), "utf8"));
   t.deepEqual(simpleBuilt, simpleFixture, 'simple build is equal to fixture');
 
   var fullConfig = {
@@ -39,7 +38,10 @@ tape('Compile unit tests', function(t) {
   };
 
   var fullBuilt = lambdaCfn.build(fullConfig);
-  var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template'), "utf8"));
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/full.template.json'), JSON.stringify(fullBuilt, null, 2), 'utf8');
+  }
+  var fullFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/full.template.json'), "utf8"));
 
   t.deepEqual(fullBuilt, fullFixture, 'full build is equal to fixture');
 
@@ -62,7 +64,10 @@ tape('Compile SNS rule', function(t) {
   };
 
   var snsBuilt = lambdaCfn.build(snsConfig);
-  var snsFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/sns.template'), "utf8"));
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/sns.template.json'), JSON.stringify(snsBuilt, null, 2), 'utf8');
+  }
+  var snsFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/sns.template.json'), "utf8"));
 
   t.deepEqual(snsBuilt,snsFixture, 'SNS rule build is equal to fixture');
 
@@ -70,9 +75,9 @@ tape('Compile SNS rule', function(t) {
 });
 
 
-tape('Compile Event rule', function(t) {
+tape('Compile Cloudwatch Event', function(t) {
   var eventConfig = {
-    name: 'eventRule',
+    name: 'event',
     runtime: 'nodejs4.3',
     parameters: {
       token: {
@@ -104,16 +109,19 @@ tape('Compile Event rule', function(t) {
   };
 
   var eventBuilt = lambdaCfn.build(eventConfig);
-  var eventFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/event.template'), "utf8"));
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/event.template.json'), JSON.stringify(eventBuilt, null, 2), 'utf8');
+  }
+  var eventFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/event.template.json'), "utf8"));
 
   t.deepEqual(eventBuilt,eventFixture, 'Event rule build is equal to fixture');
 
   t.end();
 });
 
-tape('Compile Scheduled rule', function(t) {
+tape('Compile Scheduled function', function(t) {
   var scheduledConfig = {
-    name: 'scheduledRule',
+    name: 'scheduled',
     runtime: 'nodejs4.3',
     parameters: {
       token: {
@@ -129,7 +137,10 @@ tape('Compile Scheduled rule', function(t) {
   };
 
   var scheduledBuilt = lambdaCfn.build(scheduledConfig);
-  var scheduledFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/scheduled.template'), "utf8"));
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/scheduled.template.json'), JSON.stringify(scheduledBuilt, null, 2), 'utf8');
+  }
+  var scheduledFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/scheduled.template.json'), "utf8"));
 
   t.deepEqual(scheduledBuilt,scheduledFixture, 'Scheduled rule build is equal to fixture');
 
@@ -137,9 +148,9 @@ tape('Compile Scheduled rule', function(t) {
 });
 
 
-tape('Compile Hybrid Scheduled and Hybrid based rule', function(t) {
+tape('Compile Hybrid Scheduled and Cloudwatch Event function ', function(t) {
   var hybridConfig = {
-    name: 'hybridRule',
+    name: 'hybrid',
     runtime: 'nodejs4.3',
     parameters: {
       token: {
@@ -174,16 +185,19 @@ tape('Compile Hybrid Scheduled and Hybrid based rule', function(t) {
   };
 
   var hybridBuilt = lambdaCfn.build(hybridConfig);
-  var hybridFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/hybrid.template'), "utf8"));
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/hybrid.template.json'), JSON.stringify(hybridBuilt, null, 2), 'utf8');
+  }
+  var hybridFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/hybrid.template.json'), "utf8"));
 
   t.deepLooseEqual(hybridBuilt,hybridFixture, 'Hybrid rule build is equal to fixture');
 
   t.end();
 });
 
-tape('Compile ApiGateway based rule', function(t) {
+tape('Compile Webhook based function', function(t) {
   var gatewayConfig = {
-    name: 'gatewayTestRule',
+    name: 'webhook',
     runtime: 'nodejs4.3',
     parameters: {
       'token': {
@@ -198,7 +212,10 @@ tape('Compile ApiGateway based rule', function(t) {
   };
 
   var gatewayBuilt = lambdaCfn.build(gatewayConfig);
-  var gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template'),"utf8"));
+  if (process.env.UPDATE) {
+    fs.writeFileSync(path.join(__dirname,'./fixtures/gateway.template.json'), JSON.stringify(gatewayBuilt, null, 2), 'utf8');
+  }
+  var gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template.json'),"utf8"));
 
   t.deepLooseEqual(gatewayBuilt,gatewayFixture, 'Gateway rule build is equal to fixture');
   t.end();

@@ -112,7 +112,7 @@ tape('buildParameters unit tests', function(t) {
 tape('lambda unit tests', function(t) {
   var lambda = lambdaCfn.buildLambda;
   var def = lambda({name: 'myHandler'});
-  t.equal(def.Resources.myHandler.Properties.Handler, 'function', 'Lambda handler correctly named');
+  t.equal(def.Resources.myHandler.Properties.Handler, 'test/function', 'Lambda handler correctly named');
   t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda memory size default correct');
   t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Lambda timeout default correct');
   def = lambda({name: 'myHandler', memorySize: 512, timeout: 300});

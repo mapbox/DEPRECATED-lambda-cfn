@@ -1,8 +1,12 @@
 {
   "Parameters": {
-    "token": {
+    "githubToken": {
       "Type": "String",
-      "Description": "token"
+      "Description": "Github API token with users scope"
+    },
+    "myBucket": {
+      "Type": "String",
+      "Description": "Bucket where to store"
     },
     "CodeS3Bucket": {
       "Type": "String",
@@ -14,7 +18,7 @@
     },
     "GitSha": {
       "Type": "String",
-      "Description": "lambda function S3 prefix location"
+      "Description": "Deploy Gitsha"
     },
     "ServiceAlarmEmail": {
       "Type": "String",
@@ -88,11 +92,25 @@
                 }
               ]
             }
+          },
+          {
+            "PolicyName": "full",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": "arn:aws:s3:::mySuperDuperBucket"
+                }
+              ]
+            }
           }
         ]
       }
     },
-    "scheduledRuleAlarmErrors": {
+    "fullAlarmErrors": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -110,7 +128,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "scheduledRule"
+              "Ref": "full"
             }
           }
         ],
@@ -118,7 +136,7 @@
         "MetricName": "Errors"
       }
     },
-    "scheduledRuleAlarmNoInvocations": {
+    "fullAlarmNoInvocations": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -136,7 +154,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "scheduledRule"
+              "Ref": "full"
             }
           }
         ],
@@ -168,7 +186,7 @@
         ]
       }
     },
-    "scheduledRule": {
+    "full": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -216,8 +234,11 @@
             "StackId": {
               "Ref": "AWS::StackId"
             },
-            "token": {
-              "Ref": "token"
+            "githubToken": {
+              "Ref": "githubToken"
+            },
+            "myBucket": {
+              "Ref": "myBucket"
             },
             "CodeS3Bucket": {
               "Ref": "CodeS3Bucket"
@@ -233,70 +254,142 @@
             }
           }
         },
-        "Handler": "function",
+        "Handler": "test/function",
         "Timeout": 60,
         "MemorySize": 128,
         "Runtime": "nodejs4.3"
       }
     },
-    "scheduledRuleSchedulePermission": {
+    "fullSNSPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "scheduledRule",
+            "full",
             "Arn"
           ]
         },
         "Action": "lambda:InvokeFunction",
-        "Principal": "events.amazonaws.com",
+        "Principal": "sns.amazonaws.com",
         "SourceArn": {
-          "Fn::Join": [
-            "",
-            [
-              "arn:aws:events:",
-              {
-                "Ref": "AWS::Region"
-              },
-              ":",
-              {
-                "Ref": "AWS::AccountId"
-              },
-              ":rule/",
-              {
-                "Ref": "AWS::StackName"
-              },
-              "*"
-            ]
-          ]
+          "Ref": "fullSNSTopic"
         }
       }
     },
-    "scheduledRuleScheduleRule": {
-      "Type": "AWS::Events::Rule",
+    "fullSNSUser": {
+      "Type": "AWS::IAM::User",
       "Properties": {
-        "RoleArn": {
-          "Fn::GetAtt": [
-            "LambdaCfnRole",
-            "Arn"
+        "Policies": [
+          {
+            "PolicyName": "fullSNSTopicPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Resource": {
+                    "Ref": "fullSNSTopic"
+                  },
+                  "Action": [
+                    "sns:ListTopics",
+                    "sns:Publish"
+                  ],
+                  "Effect": "Allow"
+                },
+                {
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:sns:",
+                        {
+                          "Ref": "AWS::Region"
+                        },
+                        ":",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":*"
+                      ]
+                    ]
+                  },
+                  "Action": [
+                    "sns:ListTopics"
+                  ],
+                  "Effect": "Allow"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "fullSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "DisplayName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "full"
+            ]
           ]
         },
-        "State": "ENABLED",
-        "Targets": [
+        "TopicName": {
+          "Fn::Join": [
+            "-",
+            [
+              {
+                "Ref": "AWS::StackName"
+              },
+              "full"
+            ]
+          ]
+        },
+        "Subscription": [
           {
-            "Arn": {
+            "Endpoint": {
               "Fn::GetAtt": [
-                "scheduledRule",
+                "full",
                 "Arn"
               ]
             },
-            "Id": "scheduledRule"
+            "Protocol": "lambda"
           }
-        ],
-        "ScheduleExpression": "rate(5 minutes)"
+        ]
+      }
+    },
+    "fullSNSUserAccessKey": {
+      "Type": "AWS::IAM::AccessKey",
+      "Properties": {
+        "UserName": {
+          "Ref": "fullSNSUser"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "fullSNSTopic": {
+      "Value": {
+        "Ref": "fullSNSTopic"
+      }
+    },
+    "fullSNSUserAccessKey": {
+      "Value": {
+        "Ref": "fullSNSUserAccessKey"
+      }
+    },
+    "fullSNSUserSecretAccessKey": {
+      "Value": {
+        "Fn::GetAtt": [
+          "fullSNSUserAccessKey",
+          "SecretAccessKey"
+        ]
       }
     }
   },
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "scheduledRule lambda-cfn function"
+  "Description": "full lambda-cfn function"
 }

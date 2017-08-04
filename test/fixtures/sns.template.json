@@ -14,7 +14,7 @@
     },
     "GitSha": {
       "Type": "String",
-      "Description": "lambda function S3 prefix location"
+      "Description": "Deploy Gitsha"
     },
     "ServiceAlarmEmail": {
       "Type": "String",
@@ -92,7 +92,7 @@
         ]
       }
     },
-    "gatewayTestRuleAlarmErrors": {
+    "snsAlarmErrors": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -110,7 +110,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "gatewayTestRule"
+              "Ref": "sns"
             }
           }
         ],
@@ -118,7 +118,7 @@
         "MetricName": "Errors"
       }
     },
-    "gatewayTestRuleAlarmNoInvocations": {
+    "snsAlarmNoInvocations": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -136,7 +136,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "gatewayTestRule"
+              "Ref": "sns"
             }
           }
         ],
@@ -168,7 +168,7 @@
         ]
       }
     },
-    "gatewayTestRule": {
+    "sns": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -233,40 +233,40 @@
             }
           }
         },
-        "Handler": "function",
+        "Handler": "test/function",
         "Timeout": 60,
         "MemorySize": 128,
-        "Runtime": "nodejs4.3"
+        "Runtime": "nodejs6.10"
       }
     },
-    "gatewayTestRuleSNSPermission": {
+    "snsSNSPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "gatewayTestRule",
+            "sns",
             "Arn"
           ]
         },
         "Action": "lambda:InvokeFunction",
         "Principal": "sns.amazonaws.com",
         "SourceArn": {
-          "Ref": "gatewayTestRuleSNSTopic"
+          "Ref": "snsSNSTopic"
         }
       }
     },
-    "gatewayTestRuleSNSUser": {
+    "snsSNSUser": {
       "Type": "AWS::IAM::User",
       "Properties": {
         "Policies": [
           {
-            "PolicyName": "gatewayTestRuleSNSTopicPolicy",
+            "PolicyName": "snsSNSTopicPolicy",
             "PolicyDocument": {
               "Version": "2012-10-17",
               "Statement": [
                 {
                   "Resource": {
-                    "Ref": "gatewayTestRuleSNSTopic"
+                    "Ref": "snsSNSTopic"
                   },
                   "Action": [
                     "sns:ListTopics",
@@ -302,7 +302,7 @@
         ]
       }
     },
-    "gatewayTestRuleSNSTopic": {
+    "snsSNSTopic": {
       "Type": "AWS::SNS::Topic",
       "Properties": {
         "DisplayName": {
@@ -312,7 +312,7 @@
               {
                 "Ref": "AWS::StackName"
               },
-              "gatewayTestRule"
+              "sns"
             ]
           ]
         },
@@ -323,7 +323,7 @@
               {
                 "Ref": "AWS::StackName"
               },
-              "gatewayTestRule"
+              "sns"
             ]
           ]
         },
@@ -331,7 +331,7 @@
           {
             "Endpoint": {
               "Fn::GetAtt": [
-                "gatewayTestRule",
+                "sns",
                 "Arn"
               ]
             },
@@ -340,35 +340,35 @@
         ]
       }
     },
-    "gatewayTestRuleSNSUserAccessKey": {
+    "snsSNSUserAccessKey": {
       "Type": "AWS::IAM::AccessKey",
       "Properties": {
         "UserName": {
-          "Ref": "gatewayTestRuleSNSUser"
+          "Ref": "snsSNSUser"
         }
       }
     }
   },
   "Outputs": {
-    "gatewayTestRuleSNSTopic": {
+    "snsSNSTopic": {
       "Value": {
-        "Ref": "gatewayTestRuleSNSTopic"
+        "Ref": "snsSNSTopic"
       }
     },
-    "gatewayTestRuleSNSUserAccessKey": {
+    "snsSNSUserAccessKey": {
       "Value": {
-        "Ref": "gatewayTestRuleSNSUserAccessKey"
+        "Ref": "snsSNSUserAccessKey"
       }
     },
-    "gatewayTestRuleSNSUserSecretAccessKey": {
+    "snsSNSUserSecretAccessKey": {
       "Value": {
         "Fn::GetAtt": [
-          "gatewayTestRuleSNSUserAccessKey",
+          "snsSNSUserAccessKey",
           "SecretAccessKey"
         ]
       }
     }
   },
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "gatewayTestRule lambda-cfn function"
+  "Description": "sns lambda-cfn function"
 }

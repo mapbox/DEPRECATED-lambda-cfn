@@ -1,12 +1,8 @@
 {
   "Parameters": {
-    "githubToken": {
+    "token": {
       "Type": "String",
-      "Description": "Github API token with users scope"
-    },
-    "myBucket": {
-      "Type": "String",
-      "Description": "Bucket where to store"
+      "Description": "token"
     },
     "CodeS3Bucket": {
       "Type": "String",
@@ -18,7 +14,7 @@
     },
     "GitSha": {
       "Type": "String",
-      "Description": "lambda function S3 prefix location"
+      "Description": "Deploy Gitsha"
     },
     "ServiceAlarmEmail": {
       "Type": "String",
@@ -92,25 +88,11 @@
                 }
               ]
             }
-          },
-          {
-            "PolicyName": "full",
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "s3:GetObject"
-                  ],
-                  "Resource": "arn:aws:s3:::mySuperDuperBucket"
-                }
-              ]
-            }
           }
         ]
       }
     },
-    "fullAlarmErrors": {
+    "hybridAlarmErrors": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -128,7 +110,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "full"
+              "Ref": "hybrid"
             }
           }
         ],
@@ -136,7 +118,7 @@
         "MetricName": "Errors"
       }
     },
-    "fullAlarmNoInvocations": {
+    "hybridAlarmNoInvocations": {
       "Type": "AWS::CloudWatch::Alarm",
       "Properties": {
         "EvaluationPeriods": "5",
@@ -154,7 +136,7 @@
           {
             "Name": "FunctionName",
             "Value": {
-              "Ref": "full"
+              "Ref": "hybrid"
             }
           }
         ],
@@ -186,7 +168,7 @@
         ]
       }
     },
-    "full": {
+    "hybrid": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
@@ -234,11 +216,8 @@
             "StackId": {
               "Ref": "AWS::StackId"
             },
-            "githubToken": {
-              "Ref": "githubToken"
-            },
-            "myBucket": {
-              "Ref": "myBucket"
+            "token": {
+              "Ref": "token"
             },
             "CodeS3Bucket": {
               "Ref": "CodeS3Bucket"
@@ -254,142 +233,143 @@
             }
           }
         },
-        "Handler": "function",
+        "Handler": "test/function",
         "Timeout": 60,
         "MemorySize": 128,
         "Runtime": "nodejs4.3"
       }
     },
-    "fullSNSPermission": {
+    "hybridCloudwatchEventPermission": {
       "Type": "AWS::Lambda::Permission",
       "Properties": {
         "FunctionName": {
           "Fn::GetAtt": [
-            "full",
+            "hybrid",
             "Arn"
           ]
         },
         "Action": "lambda:InvokeFunction",
-        "Principal": "sns.amazonaws.com",
+        "Principal": "events.amazonaws.com",
         "SourceArn": {
-          "Ref": "fullSNSTopic"
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:events:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":rule/",
+              {
+                "Ref": "AWS::StackName"
+              },
+              "*"
+            ]
+          ]
         }
       }
     },
-    "fullSNSUser": {
-      "Type": "AWS::IAM::User",
+    "hybridCloudwatchEventRule": {
+      "Type": "AWS::Events::Rule",
       "Properties": {
-        "Policies": [
-          {
-            "PolicyName": "fullSNSTopicPolicy",
-            "PolicyDocument": {
-              "Version": "2012-10-17",
-              "Statement": [
-                {
-                  "Resource": {
-                    "Ref": "fullSNSTopic"
-                  },
-                  "Action": [
-                    "sns:ListTopics",
-                    "sns:Publish"
-                  ],
-                  "Effect": "Allow"
-                },
-                {
-                  "Resource": {
-                    "Fn::Join": [
-                      "",
-                      [
-                        "arn:aws:sns:",
-                        {
-                          "Ref": "AWS::Region"
-                        },
-                        ":",
-                        {
-                          "Ref": "AWS::AccountId"
-                        },
-                        ":*"
-                      ]
-                    ]
-                  },
-                  "Action": [
-                    "sns:ListTopics"
-                  ],
-                  "Effect": "Allow"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "fullSNSTopic": {
-      "Type": "AWS::SNS::Topic",
-      "Properties": {
-        "DisplayName": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Ref": "AWS::StackName"
-              },
-              "full"
-            ]
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
           ]
         },
-        "TopicName": {
-          "Fn::Join": [
-            "-",
-            [
-              {
-                "Ref": "AWS::StackName"
-              },
-              "full"
-            ]
-          ]
-        },
-        "Subscription": [
+        "State": "ENABLED",
+        "Targets": [
           {
-            "Endpoint": {
+            "Arn": {
               "Fn::GetAtt": [
-                "full",
+                "hybrid",
                 "Arn"
               ]
             },
-            "Protocol": "lambda"
+            "Id": "hybrid"
           }
-        ]
-      }
-    },
-    "fullSNSUserAccessKey": {
-      "Type": "AWS::IAM::AccessKey",
-      "Properties": {
-        "UserName": {
-          "Ref": "fullSNSUser"
+        ],
+        "EventPattern": {
+          "detail-type": [
+            "AWS API Call via CloudTrail"
+          ],
+          "detail": {
+            "eventSource": [
+              "iam.amazonaws.com"
+            ],
+            "eventName": [
+              "CreatePolicy",
+              "CreatePolicyVersion",
+              "PutGroupPolicy",
+              "PutRolePolicy",
+              "PutUserPolicy"
+            ]
+          }
         }
       }
-    }
-  },
-  "Outputs": {
-    "fullSNSTopic": {
-      "Value": {
-        "Ref": "fullSNSTopic"
+    },
+    "hybridSchedulePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "hybrid",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:aws:events:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":rule/",
+              {
+                "Ref": "AWS::StackName"
+              },
+              "*"
+            ]
+          ]
+        }
       }
     },
-    "fullSNSUserAccessKey": {
-      "Value": {
-        "Ref": "fullSNSUserAccessKey"
-      }
-    },
-    "fullSNSUserSecretAccessKey": {
-      "Value": {
-        "Fn::GetAtt": [
-          "fullSNSUserAccessKey",
-          "SecretAccessKey"
-        ]
+    "hybridScheduleRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "LambdaCfnRole",
+            "Arn"
+          ]
+        },
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "hybrid",
+                "Arn"
+              ]
+            },
+            "Id": "hybrid"
+          }
+        ],
+        "ScheduleExpression": "rate(5 minutes)"
       }
     }
   },
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "full lambda-cfn function"
+  "Description": "hybrid lambda-cfn function"
 }

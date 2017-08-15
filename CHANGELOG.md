@@ -2,6 +2,8 @@
 All notable changes to this project will be documented in this file. For change log formatting, see http://keepachangelog.com/
 
 ## Unreleased
+
+## 2.0.0 2017-08-15
 - Complete refactor of the lambda-cfn codebase to increase usability as well as simplify deployments. Lambda-cfn now maps a single function to a single CloudFormation stack.
 - New command line `lambda-cfn` binary fully supports all `cfn-config` options and adds sane and helpful defaults to simplify deploying functions
 - Lambda-cfn function definitions now use better naming, and have support for more flexible event source configuration. Please read the [FUNCTION-SPEC.md]() for the revised definitions.

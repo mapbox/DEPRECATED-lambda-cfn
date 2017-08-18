@@ -1,6 +1,6 @@
 # lambda-cfn
 
-[![Build Status](https://travis-ci.org/mapbox/lambda-cfn.svg?branch=master)](https://travis-ci.org/mapbox/lambda-cfn) [![npm](https://img.shields.io/npm/v/lambda-cfn.svg)](https://www.npmjs.com/package/lambda-cfn)
+[![Build Status](https://travis-ci.org/mapbox/lambda-cfn.svg?branch=master)](https://travis-ci.org/mapbox/lambda-cfn) [![npm](https://img.shields.io/npm/v/@mapbox/lambda-cfn.svg)](https://www.npmjs.com/package/@mapbox/lambda-cfn)
 
 Quickly create, deploy, and manage AWS Lambda functions via AWS CloudFormation.
 

@@ -10,7 +10,7 @@ tape('Check for existing package.json that already has lambda-cfn', function(t) 
     .pipe(fs.createWriteStream('package.json'))
     .on('finish', () => lambdaCfn.init.checkPackageJson(function(err, res) {
       t.error(err, 'Does not error');
-      t.equal(res, 'Package.json @mapbox/lambda-cfn dependency updated to ^2.0.0');
+      t.equal(res, 'Package.json @mapbox/lambda-cfn dependency updated to ^2.0.1');
       process.chdir(__dirname);
       t.end();
     }));
@@ -22,7 +22,7 @@ tape('Add lambda-cfn as a dependency to existing package.json', function(t) {
     pipe(fs.createWriteStream('package.json'))
     .on('finish', () => lambdaCfn.init.checkPackageJson(function(err, res){
       t.error(err, 'Does not error');
-      t.equal(res, 'Added @mapbox/lambda-cfn ^2.0.0 as a dependency to existing package.json');
+      t.equal(res, 'Added @mapbox/lambda-cfn ^2.0.1 as a dependency to existing package.json');
       process.chdir(__dirname);
       t.end();
     }));

@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file. For change 
 
 ## Unreleased
 
+## 2.0.1 2017-08-22
+- Fixes template Outputs bug when enabling an API key on a webhook function.
+
 ## 2.0.0 2017-08-15
 - Complete refactor of the lambda-cfn codebase to increase usability as well as simplify deployments. Lambda-cfn now maps a single function to a single CloudFormation stack.
 - New command line `lambda-cfn` binary fully supports all `cfn-config` options and adds sane and helpful defaults to simplify deploying functions

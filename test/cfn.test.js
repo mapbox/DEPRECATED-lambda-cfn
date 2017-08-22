@@ -278,7 +278,25 @@ tape('buildWebhookEvent unit tests', function(t) {
   t.equal(r.Type, 'AWS::Lambda::Permission');
   t.equal(r.Properties.FunctionName['Fn::GetAtt'][0], 'test');
 
-  t.equal(hook.Outputs.testWebhookApiKey.Ref,'testWebhookApiKey');
+  var output = {
+    'Fn::Join': [
+      '',
+      [
+        'https://',
+        {
+          Ref: 'testWebhookApiGateway'
+        },
+        '.execute-api.',
+        {
+          Ref: 'AWS::Region'
+        },
+        '.amazonaws.com/prod/',
+        'test'
+      ]
+    ]
+  };
+  t.equal(hook.Outputs.testWebhookApiKey.Value.Ref,'testWebhookApiKey');
+  t.deepLooseEqual(hook.Outputs.testWebhookAPIEndpoint.Value, output);
 
   // test empty integration
   def = { name: 'test', eventSources: { webhook: { method: 'POST', integration: {}}}};

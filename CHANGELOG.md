@@ -2,6 +2,7 @@
 All notable changes to this project will be documented in this file. For change log formatting, see http://keepachangelog.com/
 
 ## Unreleased
+- updated contrib docs to include instructions to update tests for new releases
 
 ## 2.0.1 2017-08-22
 - Fixes template Outputs bug when enabling an API key on a webhook function.

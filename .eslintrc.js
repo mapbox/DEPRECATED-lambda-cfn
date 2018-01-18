@@ -22,4 +22,4 @@ module.exports = {
     'block-spacing': ['error', 'always'],
     'no-multiple-empty-lines': [2]
   }
-}
+};

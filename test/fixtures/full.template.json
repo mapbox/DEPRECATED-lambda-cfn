@@ -20,6 +20,10 @@
       "Type": "String",
       "Description": "Deploy Gitsha"
     },
+    "DispatchSnsArn": {
+      "Type": "String",
+      "Description": "Dispatch SNS ARN"
+    },
     "ServiceAlarmEmail": {
       "Type": "String",
       "Description": "Service alarm notifications will send to this email address"
@@ -102,6 +106,13 @@
                     "s3:GetObject"
                   ],
                   "Resource": "arn:aws:s3:::mySuperDuperBucket"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": "sns:Publish",
+                  "Resource": {
+                    "Ref": "DispatchSnsArn"
+                  }
                 }
               ]
             }
@@ -247,6 +258,9 @@
             },
             "GitSha": {
               "Ref": "GitSha"
+            },
+            "DispatchSnsArn": {
+              "Ref": "DispatchSnsArn"
             },
             "ServiceAlarmEmail": {
               "Ref": "ServiceAlarmEmail"

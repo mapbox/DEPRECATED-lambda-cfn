@@ -29,14 +29,15 @@
     "@mapbox/cfn-config": "^2.7.1"
   },
   "scripts": {
-    "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js",
+    "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff",
     "lint": "eslint -c .eslintrc.js *.js **/*.js",
     "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
   },
   "devDependencies": {
     "@mapbox/mock-aws-sdk-js": "^0.0.5",
     "eslint": "^4.4.1",
-    "tape": "^4.5.1"
+    "tape": "^4.5.1",
+    "tap-diff": "^0.1.1"
   },
   "main": "index.js",
   "description": "CloudFormation boilerplate for lambda functions"

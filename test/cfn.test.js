@@ -13,7 +13,7 @@ tape('compileFunction unit tests', function(t) {
   var compile = lambdaCfn.build.compileFunction;
   var m1 = {};
   var m2 = {};
-  var testSet = ['Metadata','Parameters','Mappings','Conditions','Resources','Outputs','Variables' ];
+  var testSet = ['Metadata', 'Parameters', 'Mappings', 'Conditions', 'Resources', 'Outputs', 'Variables' ];
 
   testSet.map(function(m) {
     m1[m] = { m1: {} };
@@ -27,12 +27,12 @@ tape('compileFunction unit tests', function(t) {
   var p1 = { Policies: [{a:'b'},{c:'d'}]};
   var p2 = { Policies: [{e:'f'},{g:'h'}]};
   var def = compile(p1,p2);
-  t.looseEqual(def.Policies,[{a:'b'},{c:'d'},{e:'f'},{g:'h'}], 'Policies array created correctly');
+  t.looseEqual(def.Policies,[{a: 'b'}, {c: 'd'}, {e: 'f'}, {g: 'h'}], 'Policies array created correctly');
 
-  p1 = { Policies: []};
-  p2 = { Policies: {}};
+  p1 = {Policies: []};
+  p2 = {Policies: {}};
   def = compile(p1,p2);
-  t.equal(def.Policies,undefined, 'Empty Policies skipped');
+  t.equal(def.Policies, undefined, 'Empty Policies skipped');
   t.end();
 });
 
@@ -440,6 +440,13 @@ tape('buildRole unit tests', function(t) {
             's3:GetObject'
           ],
           NotResource: 'arn:aws:s3:::mySuperDuperBucket'
+        },
+        {
+          Effect: 'Allow',
+          Action: 'sns:Publish',
+          Resource: {
+            Ref: 'DispatchSnsArn'
+          }
         }
       ]
     }

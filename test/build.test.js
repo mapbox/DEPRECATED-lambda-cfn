@@ -188,10 +188,6 @@ tape('Compile Hybrid Scheduled and Cloudwatch Event function ', function(t) {
   }
   var hybridFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/hybrid.template.json'), 'utf8'));
 
-  // console.log('*********');
-  // console.log(JSON.stringify(hybridBuilt, null, 2));
-  // console.log('*********');
-
   t.deepLooseEqual(hybridBuilt, hybridFixture, 'Hybrid rule build is equal to fixture');
 
   t.end();
@@ -219,10 +215,6 @@ tape('Compile Webhook based function', function(t) {
   }
 
   const gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template.json'), 'utf8'));
-
-  // console.log('*********');
-  // console.log(JSON.stringify(gatewayBuilt, null, 4));
-  // console.log('*********');
 
   t.deepLooseEqual(gatewayBuilt, gatewayFixture, 'Gateway rule build is equal to fixture');
   t.end();

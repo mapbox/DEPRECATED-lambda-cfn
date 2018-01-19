@@ -1,8 +1,7 @@
 #!/usr/bin/env node
+const cli = require('../lib/cli');
 
-var cli = require('../lib/cli');
-
-var parsed;
+let parsed;
 try { parsed = cli.parse(process.argv.slice(2), process.env); }
 catch (err) { return finished(err); }
 

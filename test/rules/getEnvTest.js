@@ -1,6 +1,4 @@
-var message = require(process.cwd()).message;
-var splitOnComma = require(process.cwd()).splitOnComma;
-var getEnv = require(process.cwd()).getEnv;
+const getEnv = require(process.cwd()).getEnv;
 
 module.exports.config = {
   name: 'getEnvTest',
@@ -23,13 +21,13 @@ module.exports.config = {
   snsRule: {}
 };
 
-module.exports.fn = function(event,callback) {
-  var result = {};
+module.exports.fn = (event, callback) => {
+  let result = {};
   process.env.patrolrulesdiagnosticgetEnvTesttestParameter1 = 1;
   process.env.patrolrulesdiagnosticgetEnvTesttestParameter2 = 2;
   process.env.patrolrulesdiagnosticgetEnvTesttestParameter3 = 3;
   result.testParameter1 = getEnv('testParameter1');
   result.testParameter2 = getEnv('testParameter2');
   result.testParameter3 = getEnv('testParameter3');
-  callback(null,result);
+  callback(null, result);
 };

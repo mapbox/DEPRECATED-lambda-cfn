@@ -1,5 +1,5 @@
-var message = require('../../').message;
-var splitOnComma = require('../../').splitOnComma;
+const message = require('../../').message;
+const splitOnComma = require('../../').splitOnComma;
 
 module.exports.config = {
   name: 'assumeRole',
@@ -13,15 +13,15 @@ module.exports.config = {
   },
   eventRule: {
     eventPattern: {
-      "detail-type": [
-        "AWS API Call via CloudTrail"
+      'detail-type': [
+        'AWS API Call via CloudTrail'
       ],
-      "detail": {
-        "eventSource": [
-          "sts.amazonaws.com"
+      'detail': {
+        'eventSource': [
+          'sts.amazonaws.com'
         ],
-        "eventName": [
-          "AssumeRole"
+        'eventName': [
+          'AssumeRole'
         ]
       }
     }
@@ -29,24 +29,26 @@ module.exports.config = {
 };
 
 module.exports.fn = function(event, callback) {
-  if (event.detail.errorCode)
+  if (event.detail.errorCode) {
     return callback(null, event.detail.errorMessage);
-  var blacklisted = splitOnComma(process.env.blacklistedRoles);
-  var assumedRoleArn = event.detail.requestParameters.roleArn;
-  var userName = event.detail.userIdentity.userName;
+  }
+
+  let blacklisted = splitOnComma(process.env.blacklistedRoles);
+  let assumedRoleArn = event.detail.requestParameters.roleArn;
+  let userName = event.detail.userIdentity.userName;
 
   // Check for fuzzy match
-  var match = blacklisted.filter(function(role) {
+  let match = blacklisted.filter(function(role) {
     return assumedRoleArn.indexOf(role) > -1;
   });
 
   if (match.length > 0) {
-    var notif = {
-      subject: 'Blacklisted role ' + match[0]  + ' assumed',
-      summary: 'Blacklisted role ' + match[0]  + ' assumed by ' + userName,
+    let notif = {
+      subject: 'Blacklisted role ' + match[0] + ' assumed',
+      summary: 'Blacklisted role ' + match[0] + ' assumed by ' + userName,
       event: event
     };
-    message(notif, function(err, result) {
+    message(notif, (err, result) => {
       callback(err, result);
     });
   } else {

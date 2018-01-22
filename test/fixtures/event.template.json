@@ -18,7 +18,7 @@
     },
     "DispatchSnsArn": {
       "Type": "String",
-      "Description": "Dispatch SNS ARN"
+      "Description": "Dispatch SNS ARN (Optional)"
     },
     "ServiceAlarmEmail": {
       "Type": "String",

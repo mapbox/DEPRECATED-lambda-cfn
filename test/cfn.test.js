@@ -440,13 +440,6 @@ tape('buildRole unit tests', function(t) {
             's3:GetObject'
           ],
           NotResource: 'arn:aws:s3:::mySuperDuperBucket'
-        },
-        {
-          Effect: 'Allow',
-          Action: 'sns:Publish',
-          Resource: {
-            Ref: 'DispatchSnsArn'
-          }
         }
       ]
     }

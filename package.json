@@ -31,7 +31,7 @@
   "scripts": {
     "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff",
     "lint": "eslint -c .eslintrc.js *.js **/*.js",
-    "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
+    "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff"
   },
   "devDependencies": {
     "@mapbox/mock-aws-sdk-js": "^0.0.5",

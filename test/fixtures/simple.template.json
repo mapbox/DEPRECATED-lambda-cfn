@@ -14,7 +14,7 @@
     },
     "DispatchSnsArn": {
       "Type": "String",
-      "Description": "Dispatch SNS ARN"
+      "Description": "Dispatch SNS ARN (Optional)"
     },
     "ServiceAlarmEmail": {
       "Type": "String",
@@ -87,14 +87,45 @@
                 }
               ]
             }
-          },
+          }
+        ]
+      }
+    },
+    "DispatchRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "HasDispatchSnsArn",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            },
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
           {
-            "PolicyName": "simple",
+            "PolicyName": "basic",
             "PolicyDocument": {
               "Statement": [
                 {
                   "Effect": "Allow",
-                  "Action": "sns:Publish",
+                  "Action": [
+                    "sns:Publish"
+                  ],
                   "Resource": {
                     "Ref": "DispatchSnsArn"
                   }
@@ -380,6 +411,20 @@
           "SecretAccessKey"
         ]
       }
+    }
+  },
+  "Conditions": {
+    "HasDispatchSnsArn": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "DispatchSnsArn"
+            }
+          ]
+        }
+      ]
     }
   },
   "AWSTemplateFormatVersion": "2010-09-09",

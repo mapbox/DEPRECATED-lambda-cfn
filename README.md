@@ -8,7 +8,7 @@ Quickly create, deploy, and manage AWS Lambda functions via AWS CloudFormation.
 
 ### Node.js
 
-Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on Amazon Web Service's [supported Node runtimes](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html), currently Node.js v4.3.2 and v6.10.3.
+Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on Amazon Web Service's [supported Node runtimes](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html), currently Node.js only v6.10.3.
 
 You'll need Node and npm installed to use lambda-cfn.
 
@@ -217,6 +217,23 @@ lambda-cfn save dev
 ## How do I contribute?
 
 We're happy you want to contribute! Check out [CONTRIBUTING.MD](CONTRIBUTING.MD) for more information.
+
+## Dispatch Integration
+
+You have to set `DispatchSnsArn` variable when deploying your patrol rule and create a message following
+[dispatch message spec](https://github.com/mapbox/dispatch/blob/master/MESSAGE-SPEC.md).
+
+If you want to support both simple patrol rules and dispatch rules you check if `DispatchSnsArn` env variable is set.
+
+```
+module.exports.fn = (event, context, callback) => {
+  if (process.env.DispatchSnsArn) {
+    return githubMadePublicEvent.madePublic(event, dispatchNotify, callback);
+  }
+
+  return githubMadePublicEvent.madePublic(event, patrolNotify, callback);
+};
+```
 
 ## Questions?
 

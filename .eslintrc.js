@@ -5,7 +5,7 @@ module.exports = {
   },
   'rules': {
     'quotes': [2, 'single', {'avoidEscape': true, 'allowTemplateLiterals': true}],
-    'indent': ['error', 2],
+    'indent': ['error', 2, {'SwitchCase': 1}],
     'no-multi-spaces': [2],
     'no-unused-vars': [1, {'argsIgnorePattern': '^_'}],
     'no-mixed-spaces-and-tabs': [2],

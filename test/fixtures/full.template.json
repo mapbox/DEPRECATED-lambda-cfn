@@ -216,13 +216,13 @@
             "HasDispatchSnsArn",
             {
               "Fn::GetAtt": [
-                "LambdaCfnRole",
+                "LambdaCfnDispatchRole",
                 "Arn"
               ]
             },
             {
               "Fn::GetAtt": [
-                "LambdaCfnDispatchRole",
+                "LambdaCfnRole",
                 "Arn"
               ]
             }

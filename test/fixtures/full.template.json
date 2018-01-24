@@ -20,13 +20,13 @@
       "Type": "String",
       "Description": "Deploy Gitsha"
     },
-    "DispatchSnsArn": {
-      "Type": "String",
-      "Description": "Dispatch SNS ARN (Optional)"
-    },
     "ServiceAlarmEmail": {
       "Type": "String",
       "Description": "Service alarm notifications will send to this email address"
+    },
+    "DispatchSnsArn": {
+      "Type": "String",
+      "Description": "Dispatch SNS ARN (Optional)"
     }
   },
   "Resources": {
@@ -106,51 +106,6 @@
                     "s3:GetObject"
                   ],
                   "Resource": "arn:aws:s3:::mySuperDuperBucket"
-                }
-              ]
-            }
-          }
-        ]
-      }
-    },
-    "DispatchRole": {
-      "Type": "AWS::IAM::Role",
-      "Condition": "HasDispatchSnsArn",
-      "Properties": {
-        "AssumeRolePolicyDocument": {
-          "Statement": [
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            },
-            {
-              "Sid": "",
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "events.amazonaws.com"
-              },
-              "Action": "sts:AssumeRole"
-            }
-          ]
-        },
-        "Path": "/",
-        "Policies": [
-          {
-            "PolicyName": "basic",
-            "PolicyDocument": {
-              "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "sns:Publish"
-                  ],
-                  "Resource": {
-                    "Ref": "DispatchSnsArn"
-                  }
                 }
               ]
             }
@@ -257,9 +212,20 @@
           }
         },
         "Role": {
-          "Fn::GetAtt": [
-            "LambdaCfnRole",
-            "Arn"
+          "Fn::If": [
+            "HasDispatchSnsArn",
+            {
+              "Fn::GetAtt": [
+                "LambdaCfnRole",
+                "Arn"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "LambdaCfnDispatchRole",
+                "Arn"
+              ]
+            }
           ]
         },
         "Description": {
@@ -297,11 +263,11 @@
             "GitSha": {
               "Ref": "GitSha"
             },
-            "DispatchSnsArn": {
-              "Ref": "DispatchSnsArn"
-            },
             "ServiceAlarmEmail": {
               "Ref": "ServiceAlarmEmail"
+            },
+            "DispatchSnsArn": {
+              "Ref": "DispatchSnsArn"
             }
           }
         },
@@ -418,6 +384,65 @@
         "UserName": {
           "Ref": "fullSNSUser"
         }
+      }
+    },
+    "LambdaCfnDispatchRole": {
+      "Type": "AWS::IAM::Role",
+      "Condition": "HasDispatchSnsArn",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            },
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "basic",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "DispatchSnsArn"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "PolicyName": "full",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s3:GetObject"
+                  ],
+                  "Resource": "arn:aws:s3:::mySuperDuperBucket"
+                }
+              ]
+            }
+          }
+        ]
       }
     }
   },

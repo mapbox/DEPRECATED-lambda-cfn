@@ -1,8 +1,8 @@
-var tape = require('tape');
-var lambdaCfn = require('../index.js');
+const tape = require('tape');
+const lambdaCfn = require('../index.js');
 
-tape('splitOnComma unit tests', function(t) {
-  var splitOnComma = lambdaCfn.splitOnComma;
+tape('splitOnComma unit tests', (t) => {
+  let splitOnComma = lambdaCfn.splitOnComma;
   t.deepEqual(
     splitOnComma('foo, bar'),
     ['foo', 'bar'],

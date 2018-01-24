@@ -89,7 +89,7 @@ Configure your Lambda function in this file. Configuration consists of passing i
 Here's what the `function.template.js` file looks like after running `lambda-cfn init`. The only required property for deployment is the name of the function - all other properties are optional.
 
 ```js
-var lambdaCfn = require('@mapbox/lambda-cfn');
+const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction'
@@ -99,7 +99,7 @@ module.exports = lambdaCfn.build({
 If you'd like to create a Lambda function that runs on the older Node.js 4.3 runtime with a memory size of 256 MB and a timeout of 120 seconds:
 
 ```js
-var lambdaCfn = require('@mapbox/lambda-cfn');
+const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction',

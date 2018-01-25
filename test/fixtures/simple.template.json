@@ -84,6 +84,15 @@
                     "iam:SimulateCustomPolicy"
                   ],
                   "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "DispatchSnsArn"
+                  }
                 }
               ]
             }
@@ -360,7 +369,6 @@
     },
     "LambdaCfnDispatchRole": {
       "Type": "AWS::IAM::Role",
-      "Condition": "HasDispatchSnsArn",
       "Properties": {
         "AssumeRolePolicyDocument": {
           "Statement": [
@@ -388,15 +396,6 @@
             "PolicyName": "basic",
             "PolicyDocument": {
               "Statement": [
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "sns:Publish"
-                  ],
-                  "Resource": {
-                    "Ref": "DispatchSnsArn"
-                  }
-                },
                 {
                   "Effect": "Allow",
                   "Action": [
@@ -430,12 +429,22 @@
                     "iam:SimulateCustomPolicy"
                   ],
                   "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "DispatchSnsArn"
+                  }
                 }
               ]
             }
           }
         ]
-      }
+      },
+      "Condition": "HasDispatchSnsArn"
     }
   },
   "Outputs": {

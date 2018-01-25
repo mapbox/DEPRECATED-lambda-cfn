@@ -103,23 +103,29 @@ tape('buildParameters unit tests', function(t) {
 });
 
 tape('lambda unit tests', function(t) {
-  var lambda = lambdaCfn.build.buildLambda;
-  var def = lambda({name: 'myHandler'});
+  let lambda = lambdaCfn.build.buildLambda;
+  let def = lambda({name: 'myHandler'});
   t.equal(def.Resources.myHandler.Properties.Handler, 'test/function.fn', 'Lambda handler correctly named');
   t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda memory size default correct');
   t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Lambda timeout default correct');
+
   def = lambda({name: 'myHandler', memorySize: 512, timeout: 300});
   t.equal(def.Resources.myHandler.Properties.MemorySize, 512, 'Lambda memory size updated');
   t.equal(def.Resources.myHandler.Properties.Timeout, 300, 'Lambda timeout updated');
+
   def = lambda({name: 'myHandler', memorySize: 512, timeout: 111});
   t.equal(def.Resources.myHandler.Properties.Timeout, 111, 'Lambda custom timeout correct');
+
   def = lambda({name: 'myHandler', memorySize: 512, timeout:-5});
   t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Negative timeout defaulted correctly');
+
   def = lambda({name: 'myHandler', memorySize: 4096, timeout: 600});
   t.equal(def.Resources.myHandler.Properties.MemorySize, 1536, 'Lambda memory size > 1536 safe default');
   t.equal(def.Resources.myHandler.Properties.Timeout, 300, 'Lambda timeout safe default');
+
   def = lambda({name: 'myHandler', memorySize: 1111, timeout: 600});
   t.equal(def.Resources.myHandler.Properties.MemorySize, 1088, 'Lambda memory size mod 64 safe default');
+
   def = lambda({name: 'myHandler', memorySize: 12, timeout: 600});
   t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda min memory size default');
   t.throws(
@@ -127,12 +133,14 @@ tape('lambda unit tests', function(t) {
       lambda({name: 'myHandler', runtime: 'nodejs'});
     }, /Invalid AWS Lambda node.js runtime/, 'Fail when bad nodejs runtime given'
   );
+
   def = lambda({name: 'myHandler', runtime: 'nodejs4.3'});
   t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs4.3', 'Created Node 4.3.2 runtime Lambda');
+
   def = lambda({name: 'myHandler'});
   t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs6.10', 'Default to Node 6.10 runtime if not specified');
-  t.end();
 
+  t.end();
 });
 
 tape('buildCloudWatchEvent unit tests', function(t) {

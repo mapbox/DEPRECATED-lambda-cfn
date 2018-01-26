@@ -100,15 +100,6 @@
                     "iam:SimulateCustomPolicy"
                   ],
                   "Resource": "*"
-                },
-                {
-                  "Effect": "Allow",
-                  "Action": [
-                    "sns:Publish"
-                  ],
-                  "Resource": {
-                    "Ref": "DispatchSnsArn"
-                  }
                 }
               ]
             }

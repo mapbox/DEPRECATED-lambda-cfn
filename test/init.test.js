@@ -1,14 +1,14 @@
-var tape = require('tape');
-var fs = require('fs');
-var rimraf = require('rimraf');
-var path = require('path');
-var lambdaCfn = require('../index.js');
+const path = require('path');
+const fs = require('fs');
+const tape = require('tape');
+const rimraf = require('rimraf');
+const lambdaCfn = require('../index.js');
 
-tape('Check for existing package.json that already has lambda-cfn', function(t) {
+tape('Check for existing package.json that already has lambda-cfn', (t) => {
   process.chdir(path.join(__dirname, 'fixtures/init'));
   fs.createReadStream('package.json.orig')
     .pipe(fs.createWriteStream('package.json'))
-    .on('finish', () => lambdaCfn.init.checkPackageJson(function(err, res) {
+    .on('finish', () => lambdaCfn.init.checkPackageJson((err, res) => {
       t.error(err, 'Does not error');
       t.equal(res, 'Package.json @mapbox/lambda-cfn dependency updated to ^2.0.1');
       process.chdir(__dirname);
@@ -16,11 +16,11 @@ tape('Check for existing package.json that already has lambda-cfn', function(t) 
     }));
 });
 
-tape('Add lambda-cfn as a dependency to existing package.json', function(t) {
+tape('Add lambda-cfn as a dependency to existing package.json', (t) => {
   process.chdir(path.join(__dirname, 'fixtures/init/incomplete'));
   fs.createReadStream('package.json.orig').
     pipe(fs.createWriteStream('package.json'))
-    .on('finish', () => lambdaCfn.init.checkPackageJson(function(err, res){
+    .on('finish', () => lambdaCfn.init.checkPackageJson((err, res) => {
       t.error(err, 'Does not error');
       t.equal(res, 'Added @mapbox/lambda-cfn ^2.0.1 as a dependency to existing package.json');
       process.chdir(__dirname);
@@ -28,12 +28,12 @@ tape('Add lambda-cfn as a dependency to existing package.json', function(t) {
     }));
 });
 
-tape('Create new package.json if it does not exist', function(t) {
+tape('Create new package.json if it does not exist', (t) => {
   process.chdir(path.join(__dirname, 'fixtures/init'));
-  fs.mkdir('anotherFakeRule', function(err) {
+  fs.mkdir('anotherFakeRule', (err) => {
     t.error(err, 'Does not error');
     process.chdir('anotherFakeRule');
-    lambdaCfn.init.checkPackageJson(function(err, res) {
+    lambdaCfn.init.checkPackageJson((err, res) => {
       t.error(err, 'Does not error');
       t.equal(res, 'Created package.json file');
       process.chdir(__dirname);
@@ -42,39 +42,39 @@ tape('Create new package.json if it does not exist', function(t) {
   });
 });
 
-tape('Create function directory and files', function(t) {
+tape('Create function directory and files', (t) => {
   process.chdir(path.join(__dirname, 'fixtures/init'));
-  lambdaCfn.init.createFunctionFiles('fakeFakeRule', function(err, res) {
+  lambdaCfn.init.createFunctionFiles('fakeFakeRule', (err, res) => {
     t.error(err, 'Does not error');
     t.equal(res, 'Created function skeleton files');
     t.end();
   });
 });
 
-tape('init called within existing function directory', function(t) {
-  lambdaCfn.init.checkPackageJson(function(err) {
+tape('init called within existing function directory', (t) => {
+  lambdaCfn.init.checkPackageJson((err) => {
     t.equal(err, 'ERROR: init called within existing function directory, unsupported behavior, exiting');
     t.end();
   });
 });
 
-tape('Creating function with bad stack name fails', function(t) {
-  lambdaCfn.init.createFunctionFiles('123-badRule', function(err){
+tape('Creating function with bad stack name fails', (t) => {
+  lambdaCfn.init.createFunctionFiles('123-badRule', (err) => {
     t.equal(err,'Not a valid AWS CloudFormation stack name - must contain only letters, numbers, dashes and start with an alpha character');
     t.end();
   });
 });
 
-tape('Cleaning up after tests...', function(t) {
+tape('Cleaning up after tests...', (t) => {
   process.chdir(path.join(__dirname, 'fixtures/init'));
   t.comment('Cleaning up fixtures/init/package.json');
   fs.unlinkSync('./package.json');
   t.comment('Cleaning up fixtures/init/incomplete/package.json');
   fs.unlinkSync('./incomplete/package.json');
   process.chdir(path.join(__dirname, 'fixtures/init'));
-  rimraf('anotherFakeRule', function(err){
+  rimraf('anotherFakeRule', (err) => {
     if (err) console.log(err);
-    rimraf('fakeFakeRule', function(err){
+    rimraf('fakeFakeRule', (err) => {
       if (err) console.log(err);
       t.comment('Complete!');
       t.end();

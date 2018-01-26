@@ -1,21 +1,21 @@
-var tape = require('tape');
-var lambdaCfn = require('../index.js');
+const tape = require('tape');
+const lambdaCfn = require('../index.js');
 
-tape('buildFunctionTemplate unit tests', function(t) {
-  var template = lambdaCfn.build.buildFunctionTemplate;
-  var def = template({name: 'test'});
+tape('buildFunctionTemplate unit tests', (t) => {
+  let template = lambdaCfn.build.buildFunctionTemplate;
+  let def = template({name: 'test'});
   t.equal(def.AWSTemplateFormatVersion, '2010-09-09', 'Template format version');
   t.equal(def.Description, 'test lambda-cfn function', 'Template description');
   t.end();
 });
 
-tape('compileFunction unit tests', function(t) {
-  var compile = lambdaCfn.build.compileFunction;
-  var m1 = {};
-  var m2 = {};
-  var testSet = ['Metadata', 'Parameters', 'Mappings', 'Conditions', 'Resources', 'Outputs', 'Variables' ];
+tape('compileFunction unit tests', (t) => {
+  let compile = lambdaCfn.build.compileFunction;
+  let m1 = {};
+  let m2 = {};
+  let testSet = ['Metadata', 'Parameters', 'Mappings', 'Conditions', 'Resources', 'Outputs', 'Variables'];
 
-  testSet.map(function(m) {
+  testSet.map((m) => {
     m1[m] = { m1: {} };
     m2[m] = { m1: {} };
     t.throws(
@@ -24,9 +24,9 @@ tape('compileFunction unit tests', function(t) {
       }, /name used more than once/, 'Fail when duplicate ' + m + ' objects');
   });
 
-  var p1 = { Policies: [{a:'b'},{c:'d'}]};
-  var p2 = { Policies: [{e:'f'},{g:'h'}]};
-  var def = compile(p1,p2);
+  let p1 = { Policies: [{a:'b'},{c:'d'}]};
+  let p2 = { Policies: [{e:'f'},{g:'h'}]};
+  let def = compile(p1,p2);
   t.looseEqual(def.Policies,[{a: 'b'}, {c: 'd'}, {e: 'f'}, {g: 'h'}], 'Policies array created correctly');
 
   p1 = {Policies: []};
@@ -37,11 +37,12 @@ tape('compileFunction unit tests', function(t) {
 });
 
 tape('buildFunction unit tests', function(t) {
-  var lambda = lambdaCfn.build.buildFunction;
+  let lambda = lambdaCfn.build.buildFunction;
   t.throws(
     function() { lambda({}); }, /Function name is required/, 'Fail when no function name given'
   );
-  var def = lambda({name: 'test'});
+
+  let def = lambda({name: 'test'});
   t.ok(def.Resources.testSNSPermission,'default SNS event function');
   t.ok(def.Resources.testSNSUser,'default SNS event function');
   t.ok(def.Resources.testSNSTopic,'default SNS event function');
@@ -56,8 +57,8 @@ tape('buildFunction unit tests', function(t) {
     lambda({name: 'test', destinations: { bad: {}}});
   }, /Unknown destination specified: bad/, 'Fail on unknown destination');
 
-  var i = 0;
-  var parameters = {};
+  let i = 0;
+  let parameters = {};
   while (i < 61) {
     parameters['p' + i] = { Type:'a', Description: 'b'};
     i++;
@@ -74,7 +75,7 @@ tape('buildFunction unit tests', function(t) {
 });
 
 tape('buildParameters unit tests', function(t) {
-  var parameters = lambdaCfn.build.buildParameters;
+  let parameters = lambdaCfn.build.buildParameters;
   t.throws(
     function() {
       parameters({parameters: {a: {
@@ -144,7 +145,7 @@ tape('lambda unit tests', function(t) {
 });
 
 tape('buildCloudWatchEvent unit tests', function(t) {
-  var event = lambdaCfn.build.buildCloudwatchEvent;
+  let event = lambdaCfn.build.buildCloudwatchEvent;
 
   t.throws(
     function() {
@@ -182,7 +183,7 @@ tape('buildCloudWatchEvent unit tests', function(t) {
     }, /scheduled function expression cannot/, 'Fail on no schedule expression'
   );
 
-  var def = event(
+  let def = event(
     {
       name: 'test',
       eventSources: {
@@ -207,10 +208,10 @@ tape('buildCloudWatchEvent unit tests', function(t) {
   t.end();
 });
 
-tape('buildWebhookEvent unit tests', function(t) {
-  var webhookEvent = lambdaCfn.build.buildWebhookEvent;
+tape('buildWebhookEvent unit tests', (t) => {
+  let webhookEvent = lambdaCfn.build.buildWebhookEvent;
 
-  var def = { name: 'test', eventSources: { webhook: {}}};
+  let def = { name: 'test', eventSources: { webhook: {}}};
   t.throws(
     function() {
       webhookEvent(def);
@@ -232,8 +233,10 @@ tape('buildWebhookEvent unit tests', function(t) {
   );
 
   def = { name: 'test', eventSources: { webhook: { method: 'POST', apiKey: 'true'}}};
-  var hook = webhookEvent(def);
-  var r = hook.Resources.testWebhookResource;
+
+  let hook = webhookEvent(def);
+  let r = hook.Resources.testWebhookResource;
+
   t.equal(r.Type,'AWS::ApiGateway::Resource');
   t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
   t.equal(r.Properties.ParentId['Fn::GetAtt'][0],'testWebhookApiGateway');
@@ -286,7 +289,7 @@ tape('buildWebhookEvent unit tests', function(t) {
   t.equal(r.Type, 'AWS::Lambda::Permission');
   t.equal(r.Properties.FunctionName['Fn::GetAtt'][0], 'test');
 
-  var output = {
+  let output = {
     'Fn::Join': [
       '',
       [
@@ -310,6 +313,7 @@ tape('buildWebhookEvent unit tests', function(t) {
   def = { name: 'test', eventSources: { webhook: { method: 'POST', integration: {}}}};
   hook = webhookEvent(def);
   r = hook.Resources.testWebhookMethod;
+
   t.equal(r.Type,'AWS::ApiGateway::Method');
   t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
   t.equal(r.Properties.ResourceId.Ref,'testWebhookResource');
@@ -332,6 +336,7 @@ tape('buildWebhookEvent unit tests', function(t) {
   }}}};
   hook = webhookEvent(def);
   r = hook.Resources.testWebhookMethod;
+
   t.equal(r.Type,'AWS::ApiGateway::Method');
   t.equal(r.Properties.RestApiId.Ref,'testWebhookApiGateway');
   t.equal(r.Properties.ResourceId.Ref,'testWebhookResource');
@@ -350,8 +355,9 @@ tape('buildWebhookEvent unit tests', function(t) {
 
 
 tape('buildSnsEvent unit tests', function(t) {
-  var sns = lambdaCfn.build.buildSnsEvent;
-  var def = sns({ name: 'test' });
+  let sns = lambdaCfn.build.buildSnsEvent;
+  let def = sns({ name: 'test' });
+
   t.equal(def.Resources.testSNSPermission.Type,'AWS::Lambda::Permission');
   t.equal(def.Resources.testSNSPermission.Properties.FunctionName['Fn::GetAtt'][0],'test');
   t.equal(def.Resources.testSNSPermission.Properties.SourceArn.Ref, 'testSNSTopic');
@@ -380,7 +386,7 @@ tape('buildSnsEvent unit tests', function(t) {
 });
 
 tape('buildRole unit tests', function(t) {
-  var role = lambdaCfn.build.buildRole;
+  let role = lambdaCfn.build.buildRole;
   t.throws(
     function() {
       role({statements: {}});
@@ -405,7 +411,7 @@ tape('buildRole unit tests', function(t) {
     }, /statement must contain Action or NotAction/, 'Fail when statement has no Action or NotAction'
   );
 
-  var myPolicy;
+  let myPolicy;
 
   t.doesNotThrow(
     function() {
@@ -457,8 +463,8 @@ tape('buildRole unit tests', function(t) {
 });
 
 tape('buildServiceAlarms unit tests', function(t) {
-  var alarms = lambdaCfn.build.buildServiceAlarms;
-  var def = alarms({name: 'test'});
+  let alarms = lambdaCfn.build.buildServiceAlarms;
+  let def = alarms({name: 'test'});
   t.notEqual(def.Resources.testAlarmErrors, undefined, 'Errors alarm is set');
   t.notEqual(def.Resources.testAlarmNoInvocations, undefined, 'NoInvocations alarm is set');
   t.equal(
@@ -487,9 +493,9 @@ tape('buildServiceAlarms unit tests', function(t) {
 });
 
 tape('buildSNSDestination unit tests', function(t) {
-  var sns = lambdaCfn.build.buildSnsDestination;
+  let sns = lambdaCfn.build.buildSnsDestination;
 
-  var def = sns({name: 'test', destinations: {sns: {mySns: { Description: 'test'}}}});
+  let def = sns({name: 'test', destinations: {sns: {mySns: { Description: 'test'}}}});
   t.notEqual(def.Parameters.mySnsEmail, undefined, 'Parameter found');
   t.equal(Array.isArray(def.Policies), true, 'Policies array is present');
   t.looseEqual(def.Policies[0].PolicyName, 'mySnsTopicPermissions');

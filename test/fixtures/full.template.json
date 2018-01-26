@@ -1,4 +1,5 @@
 {
+  "Metadata": {},
   "Parameters": {
     "githubToken": {
       "Type": "String",
@@ -27,6 +28,21 @@
     "DispatchSnsArn": {
       "Type": "String",
       "Description": "Dispatch SNS ARN (Optional)"
+    }
+  },
+  "Mappings": {},
+  "Conditions": {
+    "HasDispatchSnsArn": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "DispatchSnsArn"
+            }
+          ]
+        }
+      ]
     }
   },
   "Resources": {
@@ -507,20 +523,6 @@
           "SecretAccessKey"
         ]
       }
-    }
-  },
-  "Conditions": {
-    "HasDispatchSnsArn": {
-      "Fn::Not": [
-        {
-          "Fn::Equals": [
-            "",
-            {
-              "Ref": "DispatchSnsArn"
-            }
-          ]
-        }
-      ]
     }
   },
   "AWSTemplateFormatVersion": "2010-09-09",

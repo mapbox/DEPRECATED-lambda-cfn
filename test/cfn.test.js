@@ -11,27 +11,27 @@ tape('buildFunctionTemplate unit tests', (t) => {
 
 tape('compileFunction unit tests', (t) => {
   let compile = lambdaCfn.build.compileFunction;
-  let m1 = {};
-  let m2 = {};
+  let template = {};
+  let arg = {};
   let testSet = ['Metadata', 'Parameters', 'Mappings', 'Conditions', 'Resources', 'Outputs', 'Variables'];
 
   testSet.map((m) => {
-    m1[m] = { m1: {} };
-    m2[m] = { m1: {} };
+    template[m] = { m1: {} };
+    arg[m] = { m1: {} };
     t.throws(
       function() {
-        compile(m1, m2);
+        compile(template, arg);
       }, /name used more than once/, 'Fail when duplicate ' + m + ' objects');
   });
 
-  let p1 = { Policies: [{a:'b'},{c:'d'}]};
-  let p2 = { Policies: [{e:'f'},{g:'h'}]};
+  let p1 = {Policies: [{a: 'b'},{c: 'd'}]};
+  let p2 = {Policies: [{e: 'f'},{g: 'h'}]};
   let def = compile(p1,p2);
-  t.looseEqual(def.Policies,[{a: 'b'}, {c: 'd'}, {e: 'f'}, {g: 'h'}], 'Policies array created correctly');
+  t.looseEqual(def.Policies, [{a: 'b'}, {c: 'd'}, {e: 'f'}, {g: 'h'}], 'Policies array created correctly');
 
   p1 = {Policies: []};
   p2 = {Policies: {}};
-  def = compile(p1,p2);
+  def = compile(p1, p2);
   t.equal(def.Policies, undefined, 'Empty Policies skipped');
   t.end();
 });
@@ -166,8 +166,11 @@ tape('buildCloudWatchEvent unit tests', function(t) {
           name: 'test',
           eventSources: {
             cloudwatchEvent: {
-            }}},
-        'cloudwatchEvent');
+            }
+          }
+        },
+        'cloudwatchEvent'
+      );
     }, /eventPattern required for cloudwatch event/, 'Fail on no eventPattern'
   );
 
@@ -178,8 +181,11 @@ tape('buildCloudWatchEvent unit tests', function(t) {
           name: 'test',
           eventSources: {
             schedule: {
-            }}},
-        'schedule');
+            }
+          }
+        },
+        'schedule'
+      );
     }, /scheduled function expression cannot/, 'Fail on no schedule expression'
   );
 
@@ -189,8 +195,11 @@ tape('buildCloudWatchEvent unit tests', function(t) {
       eventSources: {
         schedule: {
           expression: 'rate(5 minutes)'
-        }}},
-    'schedule');
+        }
+      }
+    },
+    'schedule'
+  );
   t.looseEqual(Object.keys(def.Resources), ['testSchedulePermission','testScheduleRule'], 'event rule and permission named correctly');
   t.equal(def.Resources.testScheduleRule.Properties.ScheduleExpression, 'rate(5 minutes)', 'schedule expression found');
 
@@ -202,8 +211,12 @@ tape('buildCloudWatchEvent unit tests', function(t) {
           eventPattern: {
             'detail-type': [],
             detail: {}
-          }}}},
-    'cloudwatchEvent');
+          }
+        }
+      }
+    },
+    'cloudwatchEvent'
+  );
   t.looseEqual(def.Resources.testCloudwatchEventRule.Properties.EventPattern, {'detail-type': [], detail: {}}, 'found event pattern');
   t.end();
 });
@@ -232,7 +245,7 @@ tape('buildWebhookEvent unit tests', (t) => {
     }, /Webhook method responses is not an array/, 'Fail with non-array method response'
   );
 
-  def = { name: 'test', eventSources: { webhook: { method: 'POST', apiKey: 'true'}}};
+  def = {name: 'test', eventSources: { webhook: { method: 'POST', apiKey: 'true'}}};
 
   let hook = webhookEvent(def);
   let r = hook.Resources.testWebhookResource;
@@ -494,8 +507,8 @@ tape('buildServiceAlarms unit tests', function(t) {
 
 tape('buildSNSDestination unit tests', function(t) {
   let sns = lambdaCfn.build.buildSnsDestination;
-
   let def = sns({name: 'test', destinations: {sns: {mySns: { Description: 'test'}}}});
+
   t.notEqual(def.Parameters.mySnsEmail, undefined, 'Parameter found');
   t.equal(Array.isArray(def.Policies), true, 'Policies array is present');
   t.looseEqual(def.Policies[0].PolicyName, 'mySnsTopicPermissions');

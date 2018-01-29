@@ -242,6 +242,13 @@ module.exports.fn = (event, context, callback) => {
 
 `splitOnComma`: Creates an array from a list of words.
 
+### How to use it?
+Just import the utility functions like this
+
+```javascript
+const splitOnComma = require('@mapbox/lambda-cfn').splitOnComma;
+const capitalizeFirst = require('@mapbox/lambda-cfn').capitalizeFirst;
+```
 
 ## Questions?
 

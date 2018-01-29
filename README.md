@@ -235,6 +235,14 @@ module.exports.fn = (event, context, callback) => {
 };
 ```
 
+
+## Utilities
+
+`capitalizeFirst`: Capitalize the first word of a string.
+
+`splitOnComma`: Creates an array from a list of words.
+
+
 ## Questions?
 
 [Open new issue in this repo](https://github.com/mapbox/lambda-cfn/issues).

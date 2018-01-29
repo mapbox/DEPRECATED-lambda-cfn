@@ -512,7 +512,7 @@ tape('buildSNSDestination unit tests', function(t) {
   t.notEqual(def.Parameters.mySnsEmail, undefined, 'Parameter found');
   t.equal(Array.isArray(def.Policies), true, 'Policies array is present');
   t.looseEqual(def.Policies[0].PolicyName, 'mySnsTopicPermissions');
-  t.looseEqual(def.Policies[0].PolicyDocument.Statement[0],{ Effect: 'Allow', Action: 'sns:Publish', Resource: { Ref: 'test'}}, 'SNS destination policy matched');
+  t.looseEqual(def.Policies[0].PolicyDocument.Statement[0],{ Effect: 'Allow', Action: 'sns:Publish', Resource: {Ref: 'test'}}, 'SNS destination policy matched');
   t.equal(def.Resources.mySnsTopic.Type, 'AWS::SNS::Topic');
   t.equal(def.Resources.mySnsTopic.Properties.Subscription[0].Endpoint.Ref, 'mySnsEmail');
   t.equal(def.Variables.mySnsTopic.Ref, 'mySnsTopic');

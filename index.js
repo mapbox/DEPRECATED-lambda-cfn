@@ -1,6 +1,7 @@
 module.exports = {
   build: require('./lib/cfn'),
   init: require('./lib/init'),
-  splitOnComma: require('./lib/splitOnComma'),
+  splitOnComma: require('./lib/utils').splitOnComma,
+  capitalizeFirst: require('./lib/utils').capitalizeFirst,
   message: require('./lib/message')
 };

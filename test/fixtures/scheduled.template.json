@@ -1,4 +1,5 @@
 {
+  "Metadata": {},
   "Parameters": {
     "token": {
       "Type": "String",
@@ -19,6 +20,25 @@
     "ServiceAlarmEmail": {
       "Type": "String",
       "Description": "Service alarm notifications will send to this email address"
+    },
+    "DispatchSnsArn": {
+      "Type": "String",
+      "Description": "Dispatch SNS ARN (Optional)"
+    }
+  },
+  "Mappings": {},
+  "Conditions": {
+    "HasDispatchSnsArn": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "DispatchSnsArn"
+            }
+          ]
+        }
+      ]
     }
   },
   "Resources": {
@@ -190,9 +210,20 @@
           }
         },
         "Role": {
-          "Fn::GetAtt": [
-            "LambdaCfnRole",
-            "Arn"
+          "Fn::If": [
+            "HasDispatchSnsArn",
+            {
+              "Fn::GetAtt": [
+                "LambdaCfnDispatchRole",
+                "Arn"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "LambdaCfnRole",
+                "Arn"
+              ]
+            }
           ]
         },
         "Description": {
@@ -229,6 +260,9 @@
             },
             "ServiceAlarmEmail": {
               "Ref": "ServiceAlarmEmail"
+            },
+            "DispatchSnsArn": {
+              "Ref": "DispatchSnsArn"
             }
           }
         },
@@ -261,9 +295,20 @@
       "Type": "AWS::Events::Rule",
       "Properties": {
         "RoleArn": {
-          "Fn::GetAtt": [
-            "LambdaCfnRole",
-            "Arn"
+          "Fn::If": [
+            "HasDispatchSnsArn",
+            {
+              "Fn::GetAtt": [
+                "LambdaCfnDispatchRole",
+                "Arn"
+              ]
+            },
+            {
+              "Fn::GetAtt": [
+                "LambdaCfnRole",
+                "Arn"
+              ]
+            }
           ]
         },
         "State": "ENABLED",
@@ -280,8 +325,88 @@
         ],
         "ScheduleExpression": "rate(5 minutes)"
       }
+    },
+    "LambdaCfnDispatchRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            },
+            {
+              "Sid": "",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "events.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Path": "/",
+        "Policies": [
+          {
+            "PolicyName": "basic",
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:*"
+                  ],
+                  "Resource": {
+                    "Fn::Join": [
+                      "",
+                      [
+                        "arn:aws:logs:*:",
+                        {
+                          "Ref": "AWS::AccountId"
+                        },
+                        ":*"
+                      ]
+                    ]
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "ServiceAlarmSNSTopic"
+                  }
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "iam:SimulateCustomPolicy"
+                  ],
+                  "Resource": "*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "sns:Publish"
+                  ],
+                  "Resource": {
+                    "Ref": "DispatchSnsArn"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "Condition": "HasDispatchSnsArn"
     }
   },
+  "Outputs": {},
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "scheduled lambda-cfn function"
 }

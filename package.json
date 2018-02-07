@@ -4,7 +4,7 @@
   },
   "license": "BSD-2-Clause",
   "engines": {
-    "node": "4.3.2 || 6.10.3"
+    "node": "6.10.3"
   },
   "name": "@mapbox/lambda-cfn",
   "repository": {
@@ -16,11 +16,11 @@
   "bugs": {
     "url": "https://github.com/mapbox/lambda-cfn/issues"
   },
-  "version": "2.0.1",
+  "version": "3.0.0",
   "dependencies": {
     "aws-sdk": "^2.2.35",
     "d3-queue": "^2.0.3",
-    "@mapbox/cloudfriend": "^1.0.0",
+    "@mapbox/cloudfriend": "^1.9.0",
     "lodash": "^4.17.4",
     "minimist": "^1.2.0",
     "rimraf": "^2.6.1",
@@ -29,14 +29,15 @@
     "@mapbox/cfn-config": "^2.7.1"
   },
   "scripts": {
-    "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js",
+    "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff",
     "lint": "eslint -c .eslintrc.js *.js **/*.js",
-    "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js"
+    "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff"
   },
   "devDependencies": {
     "@mapbox/mock-aws-sdk-js": "^0.0.5",
     "eslint": "^4.4.1",
-    "tape": "^4.5.1"
+    "tape": "^4.5.1",
+    "tap-diff": "^0.1.1"
   },
   "main": "index.js",
   "description": "CloudFormation boilerplate for lambda functions"

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - updated contrib docs to include instructions to update tests for new releases
 
+## 3.0.0 2018-02-07
+- Drop node 4.3.2 support.
+- Transition to ES6.
+- Add integration with [Dispatch](https://github.com/mapbox/dispatch).
+- Major refactoring
+
 ## 2.0.1 2017-08-22
 - Fixes template Outputs bug when enabling an API key on a webhook function.
 

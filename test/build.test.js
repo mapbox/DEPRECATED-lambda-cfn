@@ -188,13 +188,13 @@ tape('Compile Hybrid Scheduled and Cloudwatch Event function ', function(t) {
   }
   var hybridFixture = JSON.parse(fs.readFileSync(path.join(__dirname, './fixtures/hybrid.template.json'), 'utf8'));
 
-  t.deepLooseEqual(hybridBuilt,hybridFixture, 'Hybrid rule build is equal to fixture');
+  t.deepLooseEqual(hybridBuilt, hybridFixture, 'Hybrid rule build is equal to fixture');
 
   t.end();
 });
 
 tape('Compile Webhook based function', function(t) {
-  var gatewayConfig = {
+  let gatewayConfig = {
     name: 'webhook',
     runtime: 'nodejs4.3',
     parameters: {
@@ -209,12 +209,13 @@ tape('Compile Webhook based function', function(t) {
     }
   };
 
-  var gatewayBuilt = lambdaCfn.build(gatewayConfig);
+  let gatewayBuilt = lambdaCfn.build(gatewayConfig);
   if (process.env.UPDATE) {
     fs.writeFileSync(path.join(__dirname,'./fixtures/gateway.template.json'), JSON.stringify(gatewayBuilt, null, 2), 'utf8');
   }
-  var gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template.json'),'utf8'));
 
-  t.deepLooseEqual(gatewayBuilt,gatewayFixture, 'Gateway rule build is equal to fixture');
+  const gatewayFixture = JSON.parse(fs.readFileSync(path.join(__dirname,'./fixtures/gateway.template.json'), 'utf8'));
+
+  t.deepLooseEqual(gatewayBuilt, gatewayFixture, 'Gateway rule build is equal to fixture');
   t.end();
 });

@@ -1,7 +1,7 @@
-var tape = require('tape');
-var lambdaCfn = require('../index.js');
-var AWS = require('@mapbox/mock-aws-sdk-js');
-var test;
+const tape = require('tape');
+const lambdaCfn = require('../index.js');
+const AWS = require('@mapbox/mock-aws-sdk-js');
+let test;
 
 tape('setup SNS mock test harness', function(t) {
   if (process.env.NODE_ENV) {
@@ -11,11 +11,11 @@ tape('setup SNS mock test harness', function(t) {
   t.end();
 });
 
-tape('message default email address mapping', function(t) {
+tape('message default email address mapping', (t) => {
   process.env.ServiceAlarmSNSTopic = 'arn:aws:sns:us-east-1:012345678901:myTopic';
-  var msg = {subject: 'test', event: 'test', summary: 'test'};
-  var expected = { Subject: 'test', Message: 'test\n\n"test"', TopicArn: process.env.ServiceAlarmSNSTopic };
-  var data = 'messageId';
+  const msg = {subject: 'test', event: 'test', summary: 'test'};
+  const expected = { Subject: 'test', Message: 'test\n\n"test"', TopicArn: process.env.ServiceAlarmSNSTopic};
+  const data = 'messageId';
 
   AWS.stub('SNS', 'publish', function(params, callback) {
     t.deepEqual(params, expected, 'uses default service alarm topic');
@@ -31,12 +31,14 @@ tape('message default email address mapping', function(t) {
   });
 });
 
-tape('message default email address mapping', function(t) {
+tape('message default email address mapping', (t) => {
   process.env.mySnsTopic = 'arn:aws:sns:us-east-1:012345678901:mySnsTopic';
-  var msg = {subject: 'test', event: 'test', summary: 'test', topic: process.env.mySnsTopic };
-  var expected = { Subject: 'test', Message: 'test\n\n"test"', TopicArn: process.env.mySnsTopic };
-  var data = 'messageId';
-  AWS.stub('SNS', 'publish', function(params, callback) {
+
+  const msg = {subject: 'test', event: 'test', summary: 'test', topic: process.env.mySnsTopic};
+  const expected = { Subject: 'test', Message: 'test\n\n"test"', TopicArn: process.env.mySnsTopic};
+  const data = 'messageId';
+
+  AWS.stub('SNS', 'publish', (params, callback) => {
     t.deepEqual(params, expected, 'uses custom topic');
     callback(null, data);
   });
@@ -50,8 +52,7 @@ tape('message default email address mapping', function(t) {
   });
 });
 
-
-tape('tear down SNS mock test harness', function(t) {
+tape('tear down SNS mock test harness', (t) => {
   process.env.NODE_ENV = test;
   t.end();
 });

@@ -5,9 +5,9 @@ module.exports = {
   },
   'rules': {
     'quotes': [2, 'single', {'avoidEscape': true, 'allowTemplateLiterals': true}],
-    'indent': ['error', 2],
+    'indent': ['error', 2, {'SwitchCase': 1}],
     'no-multi-spaces': [2],
-    'no-unused-vars': [1],
+    'no-unused-vars': [1, {'argsIgnorePattern': '^_'}],
     'no-mixed-spaces-and-tabs': [2],
     'no-underscore-dangle': [2],
     'no-loop-func': [2],
@@ -18,8 +18,8 @@ module.exports = {
     'no-trailing-spaces': [2],
     'no-tabs': [2],
     'new-cap': [2],
-    'camelcase': [2],
     'block-spacing': ['error', 'always'],
-    'no-multiple-empty-lines': [2]
+    'no-multiple-empty-lines': [2],
+    'semi': ['error', 'always']
   }
-}
+};

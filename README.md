@@ -8,9 +8,7 @@ Quickly create, deploy, and manage AWS Lambda functions via AWS CloudFormation.
 
 ### Node.js
 
-Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on Amazon Web Service's [supported Node runtimes](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html), currently Node.js v4.3.2 and v6.10.3.
-
-You'll need Node and npm installed to use lambda-cfn.
+Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on AWS Lambda. Only AWS Lambda [Node runtime](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) v6.10.3 is currently supported.
 
 ### S3 buckets
 
@@ -89,7 +87,7 @@ Configure your Lambda function in this file. Configuration consists of passing i
 Here's what the `function.template.js` file looks like after running `lambda-cfn init`. The only required property for deployment is the name of the function - all other properties are optional.
 
 ```js
-var lambdaCfn = require('@mapbox/lambda-cfn');
+const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction'
@@ -99,7 +97,7 @@ module.exports = lambdaCfn.build({
 If you'd like to create a Lambda function that runs on the older Node.js 4.3 runtime with a memory size of 256 MB and a timeout of 120 seconds:
 
 ```js
-var lambdaCfn = require('@mapbox/lambda-cfn');
+const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction',
@@ -217,6 +215,39 @@ lambda-cfn save dev
 ## How do I contribute?
 
 We're happy you want to contribute! Check out [CONTRIBUTING.MD](CONTRIBUTING.MD) for more information.
+
+## Utilities
+
+`capitalizeFirst`: Capitalize the first word of a string.
+
+`splitOnComma`: Creates an array from a list of words.
+
+## Dispatch Integration
+
+lambda-cfn now supports the message router [Dispatch](https://github.com/mapbox/dispatch) which provides rich integration with Slack and GitHub.
+If the optional DispatchSnsArn parameter is specified, lambda-cfn will grant the function permission to publish to the specified SNS Topic Arn.
+
+Dispatch support can be determined at runtime by checking if the `DispatchSnsArn` environment variable is set. For example:
+
+```
+module.exports.fn = (event, context, callback) => {
+  if (process.env.DispatchSnsArn) {
+    return githubMadePublicEvent.madePublic(event, dispatchNotify, callback);
+  }
+
+  return githubMadePublicEvent.madePublic(event, patrolNotify, callback);
+};
+```
+
+`lib/message.js` will route your message to Dispatch is `DispatchSnsArn` environment variable is set.
+
+### How to use it?
+Just import the utility functions like this
+
+```javascript
+const splitOnComma = require('@mapbox/lambda-cfn').splitOnComma;
+const capitalizeFirst = require('@mapbox/lambda-cfn').capitalizeFirst;
+```
 
 ## Questions?
 

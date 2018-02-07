@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - updated contrib docs to include instructions to update tests for new releases
 
-## 2.0.2 2018-01-24
+## 3.0.0 2018-02-07
 - Drop node 4.3.2 support.
 - Transition to ES6.
 - Add integration with [Dispatch](https://github.com/mapbox/dispatch).

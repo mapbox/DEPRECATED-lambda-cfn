@@ -8,9 +8,7 @@ Quickly create, deploy, and manage AWS Lambda functions via AWS CloudFormation.
 
 ### Node.js
 
-Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on Amazon Web Service's [supported Node runtimes](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html), currently Node.js only v6.10.3.
-
-You'll need Node and npm installed to use lambda-cfn.
+Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on AWS Lambda. Only AWS Lambda [Node runtime](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) v6.10.3 is currently supported.
 
 ### S3 buckets
 
@@ -218,12 +216,18 @@ lambda-cfn save dev
 
 We're happy you want to contribute! Check out [CONTRIBUTING.MD](CONTRIBUTING.MD) for more information.
 
+## Utilities
+
+`capitalizeFirst`: Capitalize the first word of a string.
+
+`splitOnComma`: Creates an array from a list of words.
+
 ## Dispatch Integration
 
-You have to set `DispatchSnsArn` variable when deploying your patrol rule and create a message following
-[dispatch message spec](https://github.com/mapbox/dispatch/blob/master/MESSAGE-SPEC.md).
+lambda-cfn now supports the message router [Dispatch](https://github.com/mapbox/dispatch) which provides rich integration with Slack and GitHub.
+If the optional DispatchSnsArn parameter is specified, lambda-cfn will grant the function permission to publish to the specified SNS Topic Arn.
 
-If you want to support both simple patrol rules and dispatch rules you check if `DispatchSnsArn` env variable is set.
+Dispatch support can be determined at runtime by checking if the `DispatchSnsArn` environment variable is set. For example:
 
 ```
 module.exports.fn = (event, context, callback) => {
@@ -235,12 +239,7 @@ module.exports.fn = (event, context, callback) => {
 };
 ```
 
-
-## Utilities
-
-`capitalizeFirst`: Capitalize the first word of a string.
-
-`splitOnComma`: Creates an array from a list of words.
+`lib/message.js` will route your message to Dispatch is `DispatchSnsArn` environment variable is set.
 
 ### How to use it?
 Just import the utility functions like this

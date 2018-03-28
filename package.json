@@ -4,7 +4,7 @@
   },
   "license": "BSD-2-Clause",
   "engines": {
-    "node": "6.10.3"
+    "node": ">= 6.10.3"
   },
   "name": "@mapbox/lambda-cfn",
   "repository": {

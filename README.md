@@ -101,7 +101,7 @@ const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction',
-  runtime: 'nodejs4.3',
+  runtime: 'nodejs6.10',
   memorySize: '256',
   timeout: '120'
 });

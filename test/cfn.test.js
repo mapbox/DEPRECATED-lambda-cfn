@@ -502,6 +502,17 @@ tape('buildServiceAlarms unit tests', function(t) {
   t.notEqual(def.Parameters.ServiceAlarmEmail, undefined, 'ServiceAlarmEmail Parameter set');
   t.equal(def.Variables.ServiceAlarmSNSTopic.Ref,'ServiceAlarmSNSTopic');
 
+  t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '0', 'Lambda threshold deafults to 0');
+
+  def = alarms({name: 'test', threshold: 3});
+  t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '3', 'Lambda threshold set to 3');
+
+  def = alarms({name: 'test', threshold: -1});
+  t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '0', 'Lambda threshold sets to 0 with negative number');
+
+  def = alarms({name: 'test', threshold: 26});
+  t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '25', 'Lambda threshold sets to highest bound');
+
   t.end();
 });
 

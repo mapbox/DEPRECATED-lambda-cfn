@@ -9,7 +9,7 @@ module.exports = lambdaCfn.build({
     name: STRING_VALUE /* required */
 });
 ```
-- Lambda-cfn defaults to Nodejs v6.10.2, Nodejs 4.3.2 also available, see [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for more information about the Lambda Nodejs runtime environment.
+- Lambda-cfn defaults to Nodejs v8.10, Nodejs v6.10.2 is also available. See [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for more information about the Lambda Nodejs runtime environment.
 - Lambda runtime parameters for `memorySize` and `timeout` are optional.
     - `memorySize` must a multiple of 64MB between 128MB and 1536MB. If not specified, the default is 128mb. If the value specified is out of bounds, Lambda-cfn will round to the nearest valid memorySize value.
     - `timeout` can be 0 to 300 seconds. If not specified, the default is 60 seconds. If the value specified is out of bounds, lambda-cfn will round to the nearest valid timeout value.
@@ -19,7 +19,7 @@ var lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
     name: STRING_VALUE, /* required */
-    runtime: 'nodejs4.3', /* optional, 'nodejs6.10' (default) or 'nodejs4.3' */
+    runtime: 'nodejs6.10', /* optional, 'nodejs8.10' (default) and nodejs6.10' */
     memorySize: '1536', /* in MB, optional, defaults to 128MB  */
     timeout: '300' /* in seconds, optional, defaults to 60 seconds */
 });

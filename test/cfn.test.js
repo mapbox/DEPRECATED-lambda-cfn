@@ -503,16 +503,18 @@ tape('buildServiceAlarms unit tests', function(t) {
   t.equal(def.Variables.ServiceAlarmSNSTopic.Ref,'ServiceAlarmSNSTopic');
 
   t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '0', 'Lambda threshold deafults to 0');
+  t.equal(def.Resources.testAlarmErrors.Properties.EvaluationPeriods, '5', 'Lambda evaluation periods deafults to 5');
+  t.equal(def.Resources.testAlarmErrors.Properties.Period, '60', 'Lambda period deafults to 60');
 
-  def = alarms({name: 'test', threshold: 3});
+  def = alarms({name: 'test', threshold: 3, evaluationPeriods: 2, period: 40});
   t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '3', 'Lambda threshold set to 3');
+  t.equal(def.Resources.testAlarmErrors.Properties.EvaluationPeriods, '2', 'Lambda evaluation periods set to 2');
+  t.equal(def.Resources.testAlarmErrors.Properties.Period, '40', 'Lambda period set to 40');
 
-  def = alarms({name: 'test', threshold: -1});
+  def = alarms({name: 'test', threshold: -1, evaluationPeriods: -1, period: -1});
   t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '0', 'Lambda threshold sets to 0 with negative number');
-
-  def = alarms({name: 'test', threshold: 26});
-  t.equal(def.Resources.testAlarmErrors.Properties.Threshold, '25', 'Lambda threshold sets to highest bound');
-
+  t.equal(def.Resources.testAlarmErrors.Properties.EvaluationPeriods, '5', 'Lambda evaluation periods set to 5 with negative number');
+  t.equal(def.Resources.testAlarmErrors.Properties.Period, '60', 'Lambda period set to 60 with negative number');
   t.end();
 });
 

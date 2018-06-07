@@ -10,10 +10,9 @@ module.exports = lambdaCfn.build({
 });
 ```
 - Lambda-cfn defaults to Nodejs v8.10, Nodejs v6.10.2 is also available. See [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for more information about the Lambda Nodejs runtime environment.
-- Lambda runtime parameters for `memorySize`, `timeout`, and `threshold` are optional.
+- Lambda runtime parameters for `memorySize` and `timeout` are optional.
     - `memorySize` must a multiple of 64MB between 128MB and 1536MB. If not specified, the default is 128mb. If the value specified is out of bounds, Lambda-cfn will round to the nearest valid memorySize value.
     - `timeout` can be 0 to 300 seconds. If not specified, the default is 60 seconds. If the value specified is out of bounds, lambda-cfn will round to the nearest valid timeout value.
-    - `threshold` is the rate of accepted failures before an alarm is created. By default, this value is set to 0 failures within 5 minutes. If the value specified is out of bounds, lambda-cfn will round to the nearest valid timeout value.
 
 ```javascript
 var lambdaCfn = require('@mapbox/lambda-cfn');
@@ -23,7 +22,6 @@ module.exports = lambdaCfn.build({
     runtime: 'nodejs6.10', /* optional, 'nodejs6.10' (default) and nodejs8.10' */
     memorySize: '1536', /* in MB, optional, defaults to 128MB  */
     timeout: '300' /* in seconds, optional, defaults to 60 seconds */
-    threshold: '25' /* optional, defaults to 0 */
 });
 ```
 - Lambda-cfn creates sane IAM policy defaults, but if additional policies are necessary for the function they should be specified in the `statements` array.
@@ -64,6 +62,27 @@ module.exports = lambdaCfn.build({
 });
 ```
 - Comma separated parameter values can be parsed within the function code with the built-in `lambdaCfn.splitOnComma` function, which will return an array of values from a comma delimited string. If `process.env.someParameter` = `value1,value2,value3,value4` then `splitOnComma(process.env.someParameter)` returns `['value1','value2','value3','value4']`
+
+## Lambda alarms
+By default, CloudWatch alarms are configured to alarm after threshold of 1 or more errors happen over a period of 5 minutes. These values, `threshold`, `period`, and `evaluationPeriods` can be configured change how your function alarms. (For example, for non-critical stacks, setting the treshold to 3 will inform you that the [lambda could not do a successful retry](https://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html).)
+
+- `period` specifies the time in seconds make up an evaluation period. If not specified, the default is 60 seconds. The value must be a positive number. If the value specified is out of bounds, Lambda-cfn will reset to the default value.
+- `evaluationPeriods` specifies how _many_ periods are in an error evaluation. If not specified, the default is 5 periods. The value must be a positive number. If the value specified is out of bounds, Lambda-cfn will reset to the default value.
+- `threshold` specifies the number of errors needed in order to create a CloudWatch alarm within an evaluation period. If not specified, the default is 0 error tolerance. The value must be a positive number. If the value specified is out of bounds, Lambda-cfn will reset to the default value.
+
+So take the below custom alarm policy:
+
+```javascript
+var lambdaCfn = require('@mapbox/lambda-cfn');
+
+module.exports = lambdaCfn.build({
+    name: STRING_VALUE, /* required */
+    period: '120', /* in seconds, defaults to 60' */
+    evaluationPeriods: '2', /* integer, defaults to 5  */
+    threshold: '3' /* integer, defaults to 0 */
+});
+```
+This would read that a CloudWatch alarm would be generated if three alarms were invoked in a four minute span. Note that this timespan is calculated by: `120 seconds X 2 periods = 240 seconds = 4 minutes`.
 
 ## Event source definitions
 Lambda-cfn has built in support for four different event source types to invoke the function:

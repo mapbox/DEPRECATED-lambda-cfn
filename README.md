@@ -224,20 +224,7 @@ We're happy you want to contribute! Check out [CONTRIBUTING.MD](CONTRIBUTING.MD)
 
 ## Dispatch Integration
 
-lambda-cfn now supports the message router [Dispatch](https://github.com/mapbox/dispatch) which provides rich integration with Slack and GitHub.
-If the optional DispatchSnsArn parameter is specified, lambda-cfn will grant the function permission to publish to the specified SNS Topic Arn.
-
-Dispatch support can be determined at runtime by checking if the `DispatchSnsArn` environment variable is set. For example:
-
-```
-module.exports.fn = (event, context, callback) => {
-  if (process.env.DispatchSnsArn) {
-    return githubMadePublicEvent.madePublic(event, dispatchNotify, callback);
-  }
-
-  return githubMadePublicEvent.madePublic(event, patrolNotify, callback);
-};
-```
+lambda-cfn now supports the message router [Dispatch](https://github.com/mapbox/dispatch) which provides message integration service with Github, Slack, and PagerDuty on lambda-cfn version 3.0 or higher. By default, lambda-cfn will have an optional parameter for your dispatch's stack SNS Topic ARN. If specified, lambda-cfn will grant the function permssion to publish to that SNS Topic.
 
 `lib/message.js` will route your message to Dispatch is `DispatchSnsArn` environment variable is set.
 
@@ -245,8 +232,25 @@ module.exports.fn = (event, context, callback) => {
 Just import the utility functions like this
 
 ```javascript
-const splitOnComma = require('@mapbox/lambda-cfn').splitOnComma;
-const capitalizeFirst = require('@mapbox/lambda-cfn').capitalizeFirst;
+const lambdaCfn = require('@mapbox/lambda-cfn');
+
+const dispatchMessage = {
+    type: 'high-priority',
+    pagerDutyServiceId: 'TEST123',
+    body: {
+      pagerduty: {
+        service: 'TEST123',
+        title: 'LambdaCfn is awesome!',
+        body: 'It routed this message through the power of dispatch!'
+      }
+    }
+};
+
+lambdaCfn.message(dispatchMessage, (err, res) => {
+  if (err) console.error(err);
+  console.log(res);
+});
+
 ```
 
 ## Questions?

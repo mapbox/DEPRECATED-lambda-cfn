@@ -66,11 +66,9 @@ module.exports = lambdaCfn.build({
 ## Lambda alarms
 By default, CloudWatch alarms are configured to alarm after threshold of 1 or more errors happen over a period of 5 minutes. These values, `threshold`, `period`, and `evaluationPeriods` can be configured change how your function alarms. (For example, for non-critical stacks, setting the treshold to 3 will inform you that the [lambda could not do a successful retry](https://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html).)
 
-- `period` specifies the time in seconds make up an evaluation period. If not specified, the default is 60 seconds. The value must be a positive number. If the value specified is out of bounds, Lambda-cfn will reset to the default value.
-- `evaluationPeriods` specifies how _many_ periods are in an error evaluation. If not specified, the default is 5 periods. The value must be a positive number. If the value specified is out of bounds, Lambda-cfn will reset to the default value.
-- `threshold` specifies the number of errors needed in order to create a CloudWatch alarm within an evaluation period. If not specified, the default is 0 error tolerance. The value must be a positive number. If the value specified is out of bounds, Lambda-cfn will reset to the default value.
+For more information on the definition of these values, please see the [CloudWatch documenation](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/AlarmThatSendsEmail.html#alarm-evaluation).
 
-So take the below custom alarm policy:
+Below is an example of a custom alarm policy:
 
 ```javascript
 var lambdaCfn = require('@mapbox/lambda-cfn');

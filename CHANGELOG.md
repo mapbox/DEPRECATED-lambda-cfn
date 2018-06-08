@@ -4,8 +4,10 @@ All notable changes to this project will be documented in this file. For change 
 ## Unreleased
 - updated contrib docs to include instructions to update tests for new releases
 
-## 3.0.1 2018-06-01
-- Default to node 8.10
+## 3.0.1 2018-06-06
+- Default to node 6.10
+- Add support for node 8.10
+- Supports configurable alarm `periods`, `evaluationPeriods`, and `thersholds`. Please read [FUNCTION-SPEC.md](./FUNCTION-SPEC.md/#lambda-alarms) for further information.
 
 ## 3.0.0 2018-02-07
 - Drop node 4.3.2 support.
@@ -19,7 +21,7 @@ All notable changes to this project will be documented in this file. For change 
 ## 2.0.0 2017-08-15
 - Complete refactor of the lambda-cfn codebase to increase usability as well as simplify deployments. Lambda-cfn now maps a single function to a single CloudFormation stack.
 - New command line `lambda-cfn` binary fully supports all `cfn-config` options and adds sane and helpful defaults to simplify deploying functions
-- Lambda-cfn function definitions now use better naming, and have support for more flexible event source configuration. Please read the [FUNCTION-SPEC.md]() for the revised definitions.
+- Lambda-cfn function definitions now use better naming, and have support for more flexible event source configuration. Please read the [FUNCTION-SPEC.md](./FUNCTION-SPEC.md) for the revised definitions.
 - API Gateway (webhook) event source rewritten to include configuration support for the entire method integration.
 
 ## 1.0.0 2017-04-27

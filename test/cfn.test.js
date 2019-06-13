@@ -110,6 +110,9 @@ tape('lambda unit tests', function(t) {
   t.equal(def.Resources.myLambda.Properties.MemorySize, 128, 'Lambda memory size default correct');
   t.equal(def.Resources.myLambda.Properties.Timeout, 60, 'Lambda timeout default correct');
 
+  def = lambda({name: 'myLambda', handler: 'lambdaDirectory/lambdaFunction.fn'});
+  t.equal(def.Resources.myLambda.Properties.Handler, 'lambdaDirectory/lambdaFunction.fn', 'Use custom Lambda handler');
+
   def = lambda({name: 'myLambda', memorySize: 512, timeout: 300});
   t.equal(def.Resources.myLambda.Properties.MemorySize, 512, 'Lambda memory size updated');
   t.equal(def.Resources.myLambda.Properties.Timeout, 300, 'Lambda timeout updated');

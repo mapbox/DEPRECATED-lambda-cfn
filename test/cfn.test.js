@@ -123,14 +123,14 @@ tape('lambda unit tests', function(t) {
   def = lambda({name: 'myLambda', memorySize: 512, timeout:-5});
   t.equal(def.Resources.myLambda.Properties.Timeout, 60, 'Negative timeout defaulted correctly');
 
-  def = lambda({name: 'myLambda', memorySize: 4096, timeout: 600});
-  t.equal(def.Resources.myLambda.Properties.MemorySize, 1536, 'Lambda memory size > 1536 safe default');
-  t.equal(def.Resources.myLambda.Properties.Timeout, 300, 'Lambda timeout safe default');
+  def = lambda({name: 'myLambda', memorySize: 4096, timeout: 1200});
+  t.equal(def.Resources.myLambda.Properties.MemorySize, 3008, 'Lambda memory size > 3008 safe default');
+  t.equal(def.Resources.myLambda.Properties.Timeout, 900, 'Lambda timeout safe default');
 
-  def = lambda({name: 'myLambda', memorySize: 1111, timeout: 600});
+  def = lambda({name: 'myLambda', memorySize: 1111, timeout: 60});
   t.equal(def.Resources.myLambda.Properties.MemorySize, 1088, 'Lambda memory size mod 64 safe default');
 
-  def = lambda({name: 'myLambda', memorySize: 12, timeout: 600});
+  def = lambda({name: 'myLambda', memorySize: 12, timeout: 60});
   t.equal(def.Resources.myLambda.Properties.MemorySize, 128, 'Lambda min memory size default');
   t.throws(
     function() {

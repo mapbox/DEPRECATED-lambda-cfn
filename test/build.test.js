@@ -13,7 +13,7 @@ tape('Template unit tests', function(t) {
 
   var fullConfig = {
     name: 'full',
-    runtime: 'nodejs6.10',
+    runtime: 'nodejs8.10',
     parameters: {
       githubToken: {
         Type: 'String',
@@ -76,7 +76,7 @@ tape('Compile SNS rule', function(t) {
 tape('Compile Cloudwatch Event', function(t) {
   var eventConfig = {
     name: 'event',
-    runtime: 'nodejs6.10',
+    runtime: 'nodejs8.10',
     parameters: {
       token: {
         Type: 'String',
@@ -120,7 +120,7 @@ tape('Compile Cloudwatch Event', function(t) {
 tape('Compile Scheduled function', function(t) {
   var scheduledConfig = {
     name: 'scheduled',
-    runtime: 'nodejs6.10',
+    runtime: 'nodejs8.10',
     parameters: {
       token: {
         Type: 'String',
@@ -149,7 +149,7 @@ tape('Compile Scheduled function', function(t) {
 tape('Compile Hybrid Scheduled and Cloudwatch Event function ', function(t) {
   var hybridConfig = {
     name: 'hybrid',
-    runtime: 'nodejs6.10',
+    runtime: 'nodejs8.10',
     parameters: {
       token: {
         Type: 'String',
@@ -196,7 +196,7 @@ tape('Compile Hybrid Scheduled and Cloudwatch Event function ', function(t) {
 tape('Compile Webhook based function', function(t) {
   let gatewayConfig = {
     name: 'webhook',
-    runtime: 'nodejs6.10',
+    runtime: 'nodejs8.10',
     parameters: {
       'token': {
         'Type': 'String',

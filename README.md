@@ -8,7 +8,7 @@ Quickly create, deploy, and manage AWS Lambda functions via AWS CloudFormation.
 
 ### Node.js
 
-Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on AWS Lambda. Node.js v8.10 is the current default, Node.js v10.x is also available. See [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for more information about the Lambda Node.js runtime environment.
+Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on AWS Lambda. Node.js v10.x is the current default, Node.js v8.10 is also available. See [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for more information about the Lambda Node.js runtime environment.
 
 ### S3 buckets
 

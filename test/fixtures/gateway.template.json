@@ -269,7 +269,7 @@
         "Handler": "test/function.fn",
         "Timeout": 60,
         "MemorySize": 128,
-        "Runtime": "nodejs8.10"
+        "Runtime": "nodejs10.x"
       }
     },
     "webhookSNSPermission": {

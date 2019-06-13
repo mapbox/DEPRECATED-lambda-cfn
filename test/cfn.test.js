@@ -138,11 +138,11 @@ tape('lambda unit tests', function(t) {
     }, /Invalid AWS Lambda node.js runtime/, 'Fail when bad nodejs runtime given'
   );
 
-  def = lambda({name: 'myLambda', runtime: 'nodejs10.x'});
-  t.equal(def.Resources.myLambda.Properties.Runtime, 'nodejs10.x', 'Created Node 10.x runtime Lambda');
+  def = lambda({name: 'myLambda', runtime: 'nodejs8.10'});
+  t.equal(def.Resources.myLambda.Properties.Runtime, 'nodejs8.10', 'Created Node 8.10 runtime Lambda');
 
   def = lambda({name: 'myLambda'});
-  t.equal(def.Resources.myLambda.Properties.Runtime, 'nodejs8.10', 'Default to Node 8.10 runtime if not specified');
+  t.equal(def.Resources.myLambda.Properties.Runtime, 'nodejs10.x', 'Default to Node 10.x runtime if not specified');
 
   t.end();
 });

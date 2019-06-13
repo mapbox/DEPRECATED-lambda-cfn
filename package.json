@@ -1,44 +1,44 @@
 {
-  "bin": {
-    "lambda-cfn": "./bin/lambda-cfn.js"
-  },
-  "license": "BSD-2-Clause",
-  "engines": {
-    "node": ">= 6.10.3"
-  },
   "name": "@mapbox/lambda-cfn",
+  "version": "3.0.1",
+  "author": "Mapbox, Inc.",
+  "description": "CloudFormation boilerplate for lambda functions",
+  "license": "BSD-2-Clause",
+  "homepage": "https://github.com/mapbox/lambda-cfn",
   "repository": {
     "url": "https://github.com/mapbox/lambda-cfn.git",
     "type": "git"
   },
-  "author": "Mapbox, Inc.",
-  "homepage": "https://github.com/mapbox/lambda-cfn",
   "bugs": {
     "url": "https://github.com/mapbox/lambda-cfn/issues"
   },
-  "version": "3.0.1",
+  "engines": {
+    "node": ">= 8.10.0"
+  },
   "dependencies": {
-    "aws-sdk": "^2.2.35",
-    "d3-queue": "^2.0.3",
-    "@mapbox/cloudfriend": "^1.9.0",
-    "lodash": "^4.17.4",
+    "@mapbox/cfn-config": "^2.20.1",
+    "@mapbox/cloudfriend": "^3.0.1",
+    "aws-sdk": "^2.474.0",
+    "d3-queue": "^3.0.7",
+    "lodash": "^4.17.11",
     "minimist": "^1.2.0",
-    "rimraf": "^2.6.1",
-    "git-rev-sync": "^1.9.1",
-    "meow": "^3.7.0",
-    "@mapbox/cfn-config": "^2.7.1"
+    "rimraf": "^2.6.3",
+    "git-rev-sync": "^1.12.0",
+    "meow": "^5.0.0"
+  },
+  "devDependencies": {
+    "@mapbox/mock-aws-sdk-js": "^1.0.0",
+    "eslint": "^5.16.0",
+    "tape": "^4.10.2",
+    "tap-diff": "^0.1.1"
   },
   "scripts": {
     "test": "eslint -c .eslintrc.js *.js **/*.js && NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff",
     "lint": "eslint -c .eslintrc.js *.js **/*.js",
     "unit-test": "NODE_ENV=test tape test/*.test.js test/**/*.test.js | tap-diff"
   },
-  "devDependencies": {
-    "@mapbox/mock-aws-sdk-js": "^0.0.5",
-    "eslint": "^4.4.1",
-    "tape": "^4.5.1",
-    "tap-diff": "^0.1.1"
+  "bin": {
+    "lambda-cfn": "./bin/lambda-cfn.js"
   },
-  "main": "index.js",
-  "description": "CloudFormation boilerplate for lambda functions"
+  "main": "index.js"
 }

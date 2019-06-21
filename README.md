@@ -94,14 +94,14 @@ module.exports = lambdaCfn.build({
 });
 ```
 
-If you'd like to create a Lambda function that runs on the newer Node.js 10.x runtime with a memory size of 256 MB and a timeout of 120 seconds:
+If you'd like to create a Lambda function that runs on the older Node.js 8.10 runtime with a memory size of 256 MB and a timeout of 120 seconds:
 
 ```js
 const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction',
-  runtime: 'nodejs10.x',
+  runtime: 'nodejs8.10',
   memorySize: '256',
   timeout: '120'
 });

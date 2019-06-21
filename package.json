@@ -13,7 +13,7 @@
     "url": "https://github.com/mapbox/lambda-cfn/issues"
   },
   "engines": {
-    "node": ">= 8.10.0"
+    "node": ">= 10.x"
   },
   "dependencies": {
     "@mapbox/cfn-config": "^2.20.1",

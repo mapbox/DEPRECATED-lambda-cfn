@@ -8,7 +8,7 @@ Quickly create, deploy, and manage AWS Lambda functions via AWS CloudFormation.
 
 ### Node.js
 
-Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on AWS Lambda. Only AWS Lambda [Node runtime](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) v6.10.3 is currently supported.
+Lambda-cfn (or "Lambda CloudFormation") is a Node.js project that runs on AWS Lambda. Node.js v10.x is the current default, Node.js v8.10 is also available. See [AWS Lambda execution environment](http://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html) for more information about the Lambda Node.js runtime environment.
 
 ### S3 buckets
 
@@ -16,8 +16,8 @@ Lambda-cfn uses [cfn-config](https://github.com/mapbox/cfn-config) behind the sc
 
 Lambda-cfn will look for the following buckets by default if you've set an `AWS_ACCOUNT_ID` environment variable:
 
-* config bucket: `cfn-configs-$AWS_ACCOUNT_ID-region`
-* template bucket: `cfn-config-templates-$AWS_ACCOUNT_ID-region`
+- Config bucket: `cfn-configs-$AWS_ACCOUNT_ID-region`
+- Template bucket: `cfn-config-templates-$AWS_ACCOUNT_ID-region`
 
 For example, if your AWS account ID is `123456789` and you're using the `us-west-1` region then lambda-cfn will look for buckets named `cfn-configs-123456789-us-west-1`and `cfn-config-templates-123456789-us-west-1`.
 
@@ -41,8 +41,8 @@ lambda-cfn init <function name>
 
 For example, running `lambda-cfn init myFunction` will create the following files and directories:
 
-* a `package.json` file in the currenty working directory with `lambda-cfn` as a dependency
-* a `myFunction` directory, with two files called `function.js` and `function.template.js`
+- a `package.json` file in the currently working directory with `lambda-cfn` as a dependency
+- a `myFunction` directory, with two files called `function.js` and `function.template.js`
 
 This looks like:
 
@@ -94,14 +94,14 @@ module.exports = lambdaCfn.build({
 });
 ```
 
-If you'd like to create a Lambda function that runs on the older Node.js 4.3 runtime with a memory size of 256 MB and a timeout of 120 seconds:
+If you'd like to create a Lambda function that runs on the older Node.js 8.10 runtime with a memory size of 256 MB and a timeout of 120 seconds:
 
 ```js
 const lambdaCfn = require('@mapbox/lambda-cfn');
 
 module.exports = lambdaCfn.build({
   name: 'myFunction',
-  runtime: 'nodejs6.10',
+  runtime: 'nodejs8.10',
   memorySize: '256',
   timeout: '120'
 });
@@ -119,8 +119,8 @@ Lambda-cfn uses [cfn-config](https://github.com/mapbox/cfn-config) for creating,
 
 Lambda-cfn will look for the following environment variables if you'd prefer to not pass in flags for each command:
 
-* `CFN_CONFIG_BUCKET` for `--config-bucket` (`-c`)
-* `AWS_REGION` for `--region` (`-r`)
+- `CFN_CONFIG_BUCKET` for `--config-bucket` (`-c`)
+- `AWS_REGION` for `--region` (`-r`)
 
 To get a full list of lambda-cfn commands, run `lambda-cfn --help`.
 
@@ -178,9 +178,9 @@ After running `lambda-cfn create`, you'll be prompted to provide four values: `C
 
 For example, if I used the `upload.sh` script to upload the file to `s3://myBucket/myFunction/<gitsha>.zip`, then I'd use the following information in the parameter prompt:
 
-* `CodeS3Bucket` = `myBucket`
-* `CodeS3Prefix` = `myFunction/`
-* `GitSha` = accept the default value (press enter)
+- `CodeS3Bucket` = `myBucket`
+- `CodeS3Prefix` = `myFunction/`
+- `GitSha` = accept the default value (press enter)
 
 For the service alarm email you can use any email address that you'd like under your control.
 
@@ -224,12 +224,13 @@ We're happy you want to contribute! Check out [CONTRIBUTING.MD](CONTRIBUTING.MD)
 
 ## Dispatch Integration
 
-lambda-cfn now supports the message router [Dispatch](https://github.com/mapbox/dispatch) which provides message integration service with Github, Slack, and PagerDuty on lambda-cfn version 3.0 or higher. By default, lambda-cfn will have an optional parameter for your dispatch's stack SNS Topic ARN. If specified, lambda-cfn will grant the function permssion to publish to that SNS Topic.
+lambda-cfn now supports Mapbox's alert router [Dispatch](https://github.com/mapbox/dispatch) which provides integration service with Github, Slack, and PagerDuty on lambda-cfn version 3.0 or higher. By default, lambda-cfn will have an optional parameter for your dispatch stack SNS Topic ARN. If specified, lambda-cfn will grant the function permission to publish to that SNS Topic.
 
 `lib/message.js` will route your message to Dispatch is `DispatchSnsArn` environment variable is set.
 
 ### How to use it?
-Just import the utility functions like this
+
+Import the utility functions like this:
 
 ```javascript
 const lambdaCfn = require('@mapbox/lambda-cfn');

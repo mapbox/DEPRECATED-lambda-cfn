@@ -1,4 +1,4 @@
-# Contribute.md
+# contributing
 
 Contributions are welcome. Please open a pull request.
 
@@ -25,17 +25,17 @@ Unit tests are done with [tape](https://www.npmjs.org/package/tape). Start them 
 # Releasing a new version
 
 1. Do excellent things in a PR
-1. Merge PR to master
-1. Make a release commit with:
+2. Merge PR to master
+3. Make a release commit with:
     - [changelog](CHANGELOG.md) having all changes of newest release
     - [package.json](package.json) is bumped to the new version
     - [lib/init.js](lib/init.js#L17) bumping the default version `lambda-cfn init` uses.
     - [test/init.test.js#L13](test/init.test.js#L13) and [test/init.test.js#L25](test/init.test.js#L25) bumping the test strings to the correct version
     - [test/fixtures/package.json](test/fixtures/package.json) bumping the version
-1. Tag your new version at release commit
+4. Tag your new version at release commit
     - `git tag v2.X.X`
     - `git push --tags`
-1. Publish new version to NPM
+5. Publish new version to NPM
 
 - Any unreleased functionality in master that's not been tagged should be highlighted in the "Unreleased" section of the changelog.
 

@@ -3,7 +3,7 @@ const getEnv = require(process.cwd()).getEnv;
 module.exports.config = {
   name: 'getEnvTest',
   sourcePath: 'rules/getEnvTest.js',
-  runtime: 'nodejs8.10',
+  runtime: 'nodejs6.10',
   parameters: {
     'testParameter1': {
       'Type': 'String',

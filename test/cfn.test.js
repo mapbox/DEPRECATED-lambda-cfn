@@ -105,41 +105,44 @@ tape('buildParameters unit tests', function(t) {
 
 tape('lambda unit tests', function(t) {
   let lambda = lambdaCfn.build.buildLambda;
-  let def = lambda({name: 'myHandler'});
-  t.equal(def.Resources.myHandler.Properties.Handler, 'test/function.fn', 'Lambda handler correctly named');
-  t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda memory size default correct');
-  t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Lambda timeout default correct');
+  let def = lambda({name: 'myLambda'});
+  t.equal(def.Resources.myLambda.Properties.Handler, 'test/function.fn', 'Lambda handler correctly named');
+  t.equal(def.Resources.myLambda.Properties.MemorySize, 128, 'Lambda memory size default correct');
+  t.equal(def.Resources.myLambda.Properties.Timeout, 60, 'Lambda timeout default correct');
 
-  def = lambda({name: 'myHandler', memorySize: 512, timeout: 300});
-  t.equal(def.Resources.myHandler.Properties.MemorySize, 512, 'Lambda memory size updated');
-  t.equal(def.Resources.myHandler.Properties.Timeout, 300, 'Lambda timeout updated');
+  def = lambda({name: 'myLambda', handler: 'lambdaDirectory/lambdaFunction.fn'});
+  t.equal(def.Resources.myLambda.Properties.Handler, 'lambdaDirectory/lambdaFunction.fn', 'Use custom Lambda handler');
 
-  def = lambda({name: 'myHandler', memorySize: 512, timeout: 111});
-  t.equal(def.Resources.myHandler.Properties.Timeout, 111, 'Lambda custom timeout correct');
+  def = lambda({name: 'myLambda', memorySize: 512, timeout: 300});
+  t.equal(def.Resources.myLambda.Properties.MemorySize, 512, 'Lambda memory size updated');
+  t.equal(def.Resources.myLambda.Properties.Timeout, 300, 'Lambda timeout updated');
 
-  def = lambda({name: 'myHandler', memorySize: 512, timeout:-5});
-  t.equal(def.Resources.myHandler.Properties.Timeout, 60, 'Negative timeout defaulted correctly');
+  def = lambda({name: 'myLambda', memorySize: 512, timeout: 111});
+  t.equal(def.Resources.myLambda.Properties.Timeout, 111, 'Lambda custom timeout correct');
 
-  def = lambda({name: 'myHandler', memorySize: 4096, timeout: 600});
-  t.equal(def.Resources.myHandler.Properties.MemorySize, 1536, 'Lambda memory size > 1536 safe default');
-  t.equal(def.Resources.myHandler.Properties.Timeout, 300, 'Lambda timeout safe default');
+  def = lambda({name: 'myLambda', memorySize: 512, timeout:-5});
+  t.equal(def.Resources.myLambda.Properties.Timeout, 60, 'Negative timeout defaulted correctly');
 
-  def = lambda({name: 'myHandler', memorySize: 1111, timeout: 600});
-  t.equal(def.Resources.myHandler.Properties.MemorySize, 1088, 'Lambda memory size mod 64 safe default');
+  def = lambda({name: 'myLambda', memorySize: 4096, timeout: 1200});
+  t.equal(def.Resources.myLambda.Properties.MemorySize, 3008, 'Lambda memory size > 3008 safe default');
+  t.equal(def.Resources.myLambda.Properties.Timeout, 900, 'Lambda timeout safe default');
 
-  def = lambda({name: 'myHandler', memorySize: 12, timeout: 600});
-  t.equal(def.Resources.myHandler.Properties.MemorySize, 128, 'Lambda min memory size default');
+  def = lambda({name: 'myLambda', memorySize: 1111, timeout: 60});
+  t.equal(def.Resources.myLambda.Properties.MemorySize, 1088, 'Lambda memory size mod 64 safe default');
+
+  def = lambda({name: 'myLambda', memorySize: 12, timeout: 60});
+  t.equal(def.Resources.myLambda.Properties.MemorySize, 128, 'Lambda min memory size default');
   t.throws(
     function() {
-      lambda({name: 'myHandler', runtime: 'nodejs'});
+      lambda({name: 'myLambda', runtime: 'nodejs'});
     }, /Invalid AWS Lambda node.js runtime/, 'Fail when bad nodejs runtime given'
   );
 
-  def = lambda({name: 'myHandler', runtime: 'nodejs8.10'});
-  t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs8.10', 'Created Node 8.10 runtime Lambda');
+  def = lambda({name: 'myLambda', runtime: 'nodejs8.10'});
+  t.equal(def.Resources.myLambda.Properties.Runtime, 'nodejs8.10', 'Created Node 8.10 runtime Lambda');
 
-  def = lambda({name: 'myHandler'});
-  t.equal(def.Resources.myHandler.Properties.Runtime, 'nodejs6.10', 'Default to Node 6.10 runtime if not specified');
+  def = lambda({name: 'myLambda'});
+  t.equal(def.Resources.myLambda.Properties.Runtime, 'nodejs10.x', 'Default to Node 10.x runtime if not specified');
 
   t.end();
 });
@@ -365,7 +368,6 @@ tape('buildWebhookEvent unit tests', (t) => {
   t.equal(r.Properties.Integration.RequestTemplates['application/x-www-form-urlencoded'],'{ "postBody" : $input.json("$")}');
   t.end();
 });
-
 
 tape('buildSnsEvent unit tests', function(t) {
   let sns = lambdaCfn.build.buildSnsEvent;

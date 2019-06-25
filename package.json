@@ -1,6 +1,6 @@
 {
   "name": "@mapbox/lambda-cfn",
-  "version": "3.0.1",
+  "version": "3.1.0",
   "author": "Mapbox, Inc.",
   "description": "CloudFormation boilerplate for lambda functions",
   "license": "BSD-2-Clause",

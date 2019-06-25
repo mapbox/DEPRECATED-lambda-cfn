@@ -2,6 +2,6 @@
   "name": "fixtures",
   "version": "0.0.0",
   "dependencies": {
-    "@mapbox/lambda-cfn": "^3.0.1"
+    "@mapbox/lambda-cfn": "^3.1.0"
   }
 }

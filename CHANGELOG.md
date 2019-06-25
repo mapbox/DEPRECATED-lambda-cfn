@@ -1,8 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. For change log formatting, see http://keepachangelog.com/
 
-## Unreleased
-- updated contrib docs to include instructions to update tests for new releases
+## 3.1.0 2019-06-25
+
+- Default to Node.js v10.x runtime
+- Add support for Node.js v8.10 runtime
+- Drop support for Node.js v6.10 runtime
+- Upgrade all dependencies
+- Updates to documentation
+- Add support for configurable `handler` option - allowing for custom Lambda handler paths in addition to lambda-cfn's default expectations.
 
 ## 3.0.1 2018-06-08
 - Default to node 6.10

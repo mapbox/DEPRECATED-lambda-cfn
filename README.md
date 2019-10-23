@@ -1,3 +1,5 @@
+:warning: DEPRECATED :warning:
+
 # lambda-cfn
 
 [![Build Status](https://travis-ci.org/mapbox/lambda-cfn.svg?branch=master)](https://travis-ci.org/mapbox/lambda-cfn) [![npm](https://img.shields.io/npm/v/@mapbox/lambda-cfn.svg)](https://www.npmjs.com/package/@mapbox/lambda-cfn)
